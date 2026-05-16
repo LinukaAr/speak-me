@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:#07070f;color:#f0eff6;font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 70% 50% at 10% 15%,rgba(232,54,93,.07) 0%,transparent 60%),radial-gradient(ellipse 60% 60% at 90% 85%,rgba(139,92,246,.05) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 50% 50%,rgba(16,217,138,.03) 0%,transparent 70%)}
+  textarea{resize:none;outline:none}
+  ::-webkit-scrollbar{width:5px;height:5px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:#2a2a42;border-radius:3px}
+  ::selection{background:rgba(232,54,93,.25);color:#f0eff6}
+}
+
+@layer components {
+  .z-content{position:relative;z-index:1}
+  .wave-bar{width:3px;border-radius:2px;background:var(--wc,#e8365d);animation:wave 1.2s ease infinite}
+  .wave-bar:nth-child(1){height:18px;animation-delay:.00s}
+  .wave-bar:nth-child(2){height:30px;animation-delay:.08s}
+  .wave-bar:nth-child(3){height:46px;animation-delay:.16s}
+  .wave-bar:nth-child(4){height:38px;animation-delay:.12s}
+  .wave-bar:nth-child(5){height:52px;animation-delay:.04s}
+  .wave-bar:nth-child(6){height:28px;animation-delay:.20s}
+  .wave-bar:nth-child(7){height:44px;animation-delay:.10s}
+  .wave-bar:nth-child(8){height:56px;animation-delay:.18s}
+  .wave-bar:nth-child(9){height:40px;animation-delay:.06s}
+  .wave-bar:nth-child(10){height:26px;animation-delay:.14s}
+  .wave-bar:nth-child(11){height:36px;animation-delay:.22s}
+  .wave-bar:nth-child(12){height:50px;animation-delay:.09s}
+  .wave-bar:nth-child(13){height:32px;animation-delay:.17s}
+  .wave-bar:nth-child(14){height:48px;animation-delay:.03s}
+  .wave-bar:nth-child(15){height:22px;animation-delay:.21s}
+  .wave-bar:nth-child(16){height:42px;animation-delay:.13s}
+  .wave-bar:nth-child(17){height:54px;animation-delay:.07s}
+  .wave-bar:nth-child(18){height:34px;animation-delay:.19s}
+  .screen-enter{animation:fade-up .35s ease both}
+  .glass{background:rgba(17,17,32,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.06)}
+}
+
+@keyframes wave{0%,100%{transform:scaleY(.3);opacity:.6}50%{transform:scaleY(1);opacity:1}}
+@keyframes fade-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+@keyframes ripple{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.35);opacity:0}}
