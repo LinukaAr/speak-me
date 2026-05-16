@@ -51,7 +51,6 @@ export async function cloneVoiceFromFiles(name, audioFiles) {
   }
   
   const data = await res.json()
-  console.log('✅ ElevenLabs success:', data)
   
   return {
     voice_id: data.voice_id,

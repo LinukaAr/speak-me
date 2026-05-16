@@ -4,7 +4,7 @@ import { useAuthContext } from '@asgardeo/auth-react'
 import { useApp } from '@/context/AppContext'
 import {
   Mic, MessageSquare, Mic2, Search, Users, Hand,
-  Settings, Globe, Menu, X, ChevronRight,
+  Settings, Globe, Menu, X, ChevronRight, LogOut,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -17,8 +17,8 @@ const NAV_ITEMS = [
 ]
 
 export default function Navbar() {
-  const { state } = useAuthContext()
-  const { user, voiceId } = useApp()
+  const { state, signOut } = useAuthContext()
+  const { user, voiceId, logout } = useApp()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -129,13 +129,23 @@ export default function Navbar() {
               </NavLink>
             ))}
 
-            <div className="mt-3 pt-3 border-t border-border flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue to-blue3
-                              flex items-center justify-center
-                              font-display font-black text-xs text-white shrink-0">
-                {user?.initials ?? '…'}
+            <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue to-blue3
+                                flex items-center justify-center
+                                font-display font-black text-xs text-white shrink-0">
+                  {user?.initials ?? '…'}
+                </div>
+                <span className="text-sm text-muted">{user?.email ?? user?.name ?? 'Account'}</span>
               </div>
-              <span className="text-sm text-muted">{user?.email ?? user?.name ?? 'Account'}</span>
+              <button
+                onClick={() => { closeMenu(); logout(); signOut() }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                           text-red hover:bg-red/8 border border-transparent hover:border-red/20 transition-all shrink-0"
+              >
+                <LogOut size={13} />
+                Sign Out
+              </button>
             </div>
           </div>
         </>

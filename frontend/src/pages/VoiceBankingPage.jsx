@@ -98,7 +98,6 @@ export default function VoiceBankingPage() {
           setUploadProgress(Math.floor(((i + 1) / audioFiles.length) * 50))
         }
         
-        toast('✅ Files uploaded to cloud storage')
       }
 
       // Step 2: Clone voice with ElevenLabs
@@ -159,7 +158,6 @@ export default function VoiceBankingPage() {
       setClonedVoiceName(result.name)
       
       setCloneStatus('success')
-      toast('✅ Voice cloned successfully!')
     } catch (error) {
       const friendlyError = handleApiError(error, error.response)
       setErrorMessage(friendlyError)
@@ -181,7 +179,7 @@ export default function VoiceBankingPage() {
   }
 
   return (
-    <div className="z-content screen-enter px-8 py-8 max-w-7xl mx-auto">
+    <div className="z-content screen-enter px-4 sm:px-8 py-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 text-[10px] font-bold tracking-[2px]
@@ -189,7 +187,7 @@ export default function VoiceBankingPage() {
           <span className="w-4 h-px bg-red" />
           Voice Banking
         </div>
-        <h1 className="font-display font-black text-5xl tracking-[-2px] leading-[.95] mb-3">
+        <h1 className="font-display font-black text-3xl sm:text-5xl tracking-[-1px] sm:tracking-[-2px] leading-[.95] mb-3">
           Clone Your Voice
         </h1>
         <p className="text-muted text-[15px] leading-relaxed max-w-2xl">
@@ -213,24 +211,14 @@ export default function VoiceBankingPage() {
         />
       </div>
 
-      {/* Audio File List */}
-      {audioFiles.length > 0 && (
-        <div className="mb-6">
-          <AudioFileList
-            audioFiles={audioFiles}
-            onDelete={handleDeleteFile}
-          />
-        </div>
-      )}
-
-      {/* Clone Button */}
+      {/* Clone Button — shown right after recording, before file list */}
       {audioFiles.length > 0 && cloneStatus === 'idle' && (
         <div className="mb-6">
           <button
             onClick={handleCloneVoice}
             disabled={!canClone}
             className="w-full py-4 bg-gradient-to-r from-red to-purple text-white
-                       text-lg font-bold rounded-xl
+                       text-base font-bold rounded-xl
                        hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red/30
                        disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
                        transition-all active:scale-[.98]"
@@ -241,8 +229,18 @@ export default function VoiceBankingPage() {
             }
           </button>
           <p className="text-center text-xs text-muted mt-2">
-            Minimum 3 seconds required • Recommended: 1-5 minutes for good quality • 30+ minutes for professional quality
+            Minimum 3 seconds required · Recommended: 1–5 minutes for good quality
           </p>
+        </div>
+      )}
+
+      {/* Audio File List */}
+      {audioFiles.length > 0 && (
+        <div className="mb-6">
+          <AudioFileList
+            audioFiles={audioFiles}
+            onDelete={handleDeleteFile}
+          />
         </div>
       )}
 

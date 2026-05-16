@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthContext } from '@asgardeo/auth-react'
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AppProvider } from '@/context/AppContext'
 import Navbar from '@/components/layout/Navbar'
 import Toast from '@/components/ui/Toast'
@@ -11,6 +13,12 @@ import Family from '@/pages/Family'
 import SignLanguage from '@/pages/SignLanguage'
 import Settings from '@/pages/Settings'
 import VoiceBankingPage from '@/pages/VoiceBankingPage'
+
+function SignoutPage() {
+  const navigate = useNavigate()
+  useEffect(() => { navigate('/', { replace: true }) }, [navigate])
+  return null
+}
 
 function ProtectedRoute({ children }) {
   const { state } = useAuthContext()
@@ -24,15 +32,17 @@ function AppRoutes() {
       <Navbar />
       <Toast />
       <Routes>
-        <Route path="/"           element={<Login />} />
-        <Route path="/speak"      element={<ProtectedRoute><Speak /></ProtectedRoute>} />
-        <Route path="/phrases"    element={<ProtectedRoute><Phrases /></ProtectedRoute>} />
+        <Route path="/"              element={<Login />} />
+        <Route path="/login"         element={<Login />} />
+        <Route path="/signout"       element={<SignoutPage />} />
+        <Route path="/speak"         element={<ProtectedRoute><Speak /></ProtectedRoute>} />
+        <Route path="/phrases"       element={<ProtectedRoute><Phrases /></ProtectedRoute>} />
         <Route path="/voice-banking" element={<ProtectedRoute><VoiceBankingPage /></ProtectedRoute>} />
-        <Route path="/archaeology"element={<ProtectedRoute><Archaeology /></ProtectedRoute>} />
-        <Route path="/family"     element={<ProtectedRoute><Family /></ProtectedRoute>} />
-        <Route path="/sign"       element={<ProtectedRoute><SignLanguage /></ProtectedRoute>} />
-        <Route path="/settings"   element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="*"           element={<Navigate to="/" replace />} />
+        <Route path="/archaeology"   element={<ProtectedRoute><Archaeology /></ProtectedRoute>} />
+        <Route path="/family"        element={<ProtectedRoute><Family /></ProtectedRoute>} />
+        <Route path="/sign"          element={<ProtectedRoute><SignLanguage /></ProtectedRoute>} />
+        <Route path="/settings"      element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="*"              element={<Navigate to="/" replace />} />
       </Routes>
     </>
   )

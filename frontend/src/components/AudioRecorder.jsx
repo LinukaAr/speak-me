@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useApp } from '@/context/AppContext'
 import Waveform from '@/components/ui/Waveform'
 import { getAudioDuration, generateAudioFileId, formatDuration } from '@/lib/audioUtils'
-import { Mic, Pause, Play, Square } from 'lucide-react'
+import { Mic, Pause, Play, Square, ArrowUp } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function AudioRecorder({ onRecordingComplete, onError }) {
@@ -10,6 +10,7 @@ export default function AudioRecorder({ onRecordingComplete, onError }) {
   const [isRecording, setIsRecording] = useState(false)
   const [recordingDuration, setRecordingDuration] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
+  const [justSaved, setJustSaved] = useState(false)
   
   const mediaRecorderRef = useRef(null)
   const audioChunksRef = useRef([])
@@ -64,6 +65,7 @@ export default function AudioRecorder({ onRecordingComplete, onError }) {
           }
 
           onRecordingComplete(audioFile)
+          setJustSaved(true)
           toast(`✓ Recording saved (${formatDuration(duration)})`)
         } catch (error) {
           onError(error)
@@ -85,6 +87,7 @@ export default function AudioRecorder({ onRecordingComplete, onError }) {
       // Start recording
       mediaRecorder.start()
       setIsRecording(true)
+      setJustSaved(false)
       setRecordingDuration(0)
 
       // Start timer
@@ -142,9 +145,22 @@ export default function AudioRecorder({ onRecordingComplete, onError }) {
 
       {!isRecording ? (
         <div className="text-center py-8">
-          <p className="text-sm text-muted mb-6">
-            Click the button below to start recording your voice. Speak clearly and naturally.
-          </p>
+          {justSaved ? (
+            <div className="mb-5 flex flex-col items-center gap-2 animate-pulse-once">
+              <div className="flex items-center gap-2 bg-green/10 border border-green/25 text-green
+                              px-4 py-3 rounded-xl text-sm font-semibold">
+                <span>✓ Recording saved!</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted">
+                <ArrowUp size={13} className="text-red" />
+                Now tap <span className="font-semibold text-ink">Clone My Voice with ElevenLabs</span> above to continue
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted mb-6">
+              Click the button below to start recording your voice. Speak clearly and naturally.
+            </p>
+          )}
           <button
             onClick={startRecording}
             className="flex items-center gap-2 px-6 py-3 mx-auto
@@ -153,7 +169,7 @@ export default function AudioRecorder({ onRecordingComplete, onError }) {
                        transition-all active:scale-[.97]"
           >
             <span className="w-2.5 h-2.5 rounded-full bg-white" />
-            Start Recording
+            {justSaved ? 'Record Another' : 'Start Recording'}
           </button>
         </div>
       ) : (

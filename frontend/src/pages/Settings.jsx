@@ -126,7 +126,7 @@ export default function Settings() {
                     {user?.initials}
                   </div>
                   <div className="flex-1">
-                    <div className="font-display font-bold text-base">{voiceName} — Professional Clone</div>
+                    <div className="font-display font-bold text-base">{voiceName}</div>
                     <div className="text-xs text-muted mt-0.5">
                       Voice ID: {voiceId.slice(0, 12)}... · Created {formatDate(voiceCreatedAt)}
                     </div>

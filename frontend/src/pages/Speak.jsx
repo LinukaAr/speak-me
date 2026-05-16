@@ -76,7 +76,7 @@ export default function Speak() {
       <div className="min-h-[calc(100vh-65px)]">
 
         {/* ── MAIN ── */}
-        <div className="px-8 py-8">
+        <div className="px-4 sm:px-8 py-8">
 
           {/* Voice badge
           {voiceId ? (
@@ -148,33 +148,37 @@ export default function Speak() {
               placeholder={"Type what you want to say…\n\nTry: \"Good morning, how are you feeling today?\""}
               rows={5}
               className="w-full bg-card border-[1.5px] border-border rounded-2xl
-                         px-5 pt-5 pb-20 text-ink text-[15px] leading-relaxed
+                         px-5 pt-5 pb-24 text-ink text-[15px] leading-relaxed
                          placeholder:text-muted focus:border-blue/40 transition-colors
                          font-body"
             />
             {/* Toolbar inside textarea */}
             <div className="absolute bottom-0 left-0 right-0
-                            flex items-center justify-between gap-3
+                            flex flex-col gap-2
                             px-4 py-2.5 border-t border-border
                             bg-card/90 rounded-b-2xl backdrop-blur-sm">
-              <button
-                onClick={() => navigate('/voice-banking')}
-                className="flex items-center gap-1.5 text-xs text-muted hover:text-blue transition-colors shrink-0"
-              >
-                <Info size={12} />
-                Speak in your own voice
-              </button>
+              {/* Top row: info link + waveform */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => navigate('/voice-banking')}
+                  className="flex items-center gap-1.5 text-xs text-muted hover:text-blue transition-colors shrink-0"
+                >
+                  <Info size={12} />
+                  Speak in your own voice
+                </button>
 
-              {/* Waveform inline */}
-              <div className="flex justify-center">
-                <Waveform bars={10} active={speaking} />
+                {/* Waveform inline */}
+                <div className="hidden sm:flex justify-center">
+                  <Waveform bars={10} active={speaking} />
+                </div>
               </div>
 
+              {/* Bottom row: Speak button */}
               <button
                 onClick={handleSpeak}
                 disabled={isSynthesizing}
                 className={clsx(
-                  "flex items-center gap-2 px-5 py-2 shrink-0",
+                  "flex items-center gap-2 px-5 py-2 w-full justify-center",
                   "text-sm font-semibold rounded-xl transition-all",
                   !isSynthesizing
                     ? "bg-red text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red/30 active:scale-[.97]"

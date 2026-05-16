@@ -21,7 +21,6 @@ export default function ArchaeologyPage() {
     await new Promise(r => setTimeout(r, 2800))
     setUploaded(true)
     setUploading(false)
-    showToast('✅ Files uploaded and processed successfully!', 'success')
   }
 
   const qualityColors = { high: 'green', med: 'amber', low: 'muted' }

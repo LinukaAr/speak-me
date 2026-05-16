@@ -213,9 +213,7 @@ export function AppProvider({ children }) {
             full_name: name,
             initials: initials,
           })
-          console.log('✅ Profile created in Supabase')
         } else {
-          console.log('✅ Profile already exists in Supabase')
         }
       } catch (error) {
         console.error('Failed to create/check profile:', error)
