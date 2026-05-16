@@ -14,8 +14,8 @@ const SOURCES = [
 ]
 
 const CONTRIBUTORS = [
-  { initial:'S', name:'Sarah (Daughter)', bg:'from-red to-red2',     detail:'3 WhatsApp notes + birthday video', added:'+8m 22s', status:'done'    },
-  { initial:'M', name:'Michael (Son)',    bg:'from-blue to-blue',    detail:'2 voicemails + graduation video',   added:'+5m 41s', status:'done'    },
+  { initial:'S', name:'Sarah (Daughter)', bg:'from-blue to-blue2',   detail:'3 WhatsApp notes + birthday video', added:'+8m 22s', status:'done'    },
+  { initial:'M', name:'Michael (Son)',    bg:'from-blue3 to-blue4',  detail:'2 voicemails + graduation video',   added:'+5m 41s', status:'done'    },
   { initial:'J', name:'James (Friend)',   bg:'from-green to-green',  detail:'Checking group chats…',             added:'Pending', status:'pending' },
 ]
 
@@ -76,13 +76,13 @@ export default function Archaeology() {
                   className={clsx(
                     'relative text-left p-4 rounded-xl border transition-all',
                     sel
-                      ? 'bg-red/6 border-red/35'
+                      ? 'bg-blue/6 border-blue/35'
                       : 'bg-card border-border hover:border-border2'
                   )}
                 >
                   {sel && (
-                    <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-red
-                                    flex items-center justify-center text-[10px] text-white font-bold">
+                    <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-blue
+                                    flex items-center justify-center text-[10px] text-bg font-bold">
                       ✓
                     </div>
                   )}
@@ -114,7 +114,7 @@ export default function Archaeology() {
                            bg-card border border-border rounded-xl">
                 <div className={clsx(
                   'w-10 h-10 rounded-full bg-gradient-to-br flex items-center justify-center',
-                  'font-display font-black text-sm text-white shrink-0',
+                  'font-display font-black text-sm shrink-0',
                   c.bg
                 )}>
                   {c.initial}
@@ -138,7 +138,7 @@ export default function Archaeology() {
           <button
             onClick={() => toast('📨 Invite link copied to clipboard!')}
             className="w-full py-3.5 border-2 border-dashed border-border2 rounded-xl
-                       text-sm text-muted hover:border-red hover:text-red transition-all"
+                       text-sm text-muted hover:border-blue hover:text-blue transition-all"
           >
             + Invite another family member
           </button>

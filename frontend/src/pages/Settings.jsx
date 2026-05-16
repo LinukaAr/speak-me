@@ -43,8 +43,8 @@ export default function Settings() {
               className={clsx(
                 'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all text-left',
                 section === n
-                  ? 'bg-red/8 text-ink border border-red/15'
-                  : 'text-muted hover:bg-white/4 hover:text-ink border border-transparent'
+                  ? 'bg-blue/8 text-ink border border-blue/20'
+                  : 'text-muted hover:bg-blue/5 hover:text-ink border border-transparent'
               )}
             >
               {{'Voice Clone':'🎙','Language':'🌍','Privacy':'🔒','Emergency':'🚨','Accessibility':'♿','Account':'👤'}[n]}
@@ -73,8 +73,8 @@ export default function Settings() {
             {/* Clone card */}
             <div className="flex items-center gap-4 bg-green/6 border border-green/20
                             rounded-xl p-5 mb-5">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-red to-purple
-                              flex items-center justify-center font-display font-black text-xl text-white">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue to-blue3
+                              flex items-center justify-center font-display font-black text-xl text-bg">
                 {user?.initials}
               </div>
               <div className="flex-1">
@@ -93,7 +93,7 @@ export default function Settings() {
                 <div className="flex items-center gap-3">
                   <input type="range" min={0} max={100} value={val}
                     onChange={e => set(+e.target.value)}
-                    className="w-32 accent-red" />
+                    className="w-32 accent-blue" />
                   <span className="text-xs text-muted w-8 text-right">{val}%</span>
                 </div>
               </SettingRow>
@@ -102,8 +102,8 @@ export default function Settings() {
             <SettingRow title="Re-train voice clone" desc="Add more recordings to improve similarity score">
               <button
                 onClick={() => { navigate('/archaeology'); toast('🔍 Adding more audio via Voice Archaeology…') }}
-                className="px-4 py-1.5 bg-red/10 border border-red/25 text-red text-xs font-bold
-                           rounded-lg hover:bg-red/18 transition-colors"
+                className="px-4 py-1.5 bg-blue/10 border border-blue/25 text-blue text-xs font-bold
+                           rounded-lg hover:bg-blue/18 transition-colors"
               >
                 Add Audio
               </button>
@@ -131,7 +131,7 @@ export default function Settings() {
                     className={clsx(
                       'p-4 rounded-xl border text-center transition-all',
                       selLang === l.name
-                        ? 'border-purple/50 bg-purple/10'
+                        ? 'border-blue/50 bg-blue/10'
                         : disabled
                           ? 'border-border bg-card opacity-50 cursor-not-allowed'
                           : 'border-border bg-card hover:border-border2'
@@ -222,8 +222,8 @@ export default function Settings() {
           <div>
             <SectionTitle>👤 Account</SectionTitle>
             <div className="flex items-center gap-4 bg-card border border-border rounded-xl p-5 mb-5">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-red to-purple
-                              flex items-center justify-center font-display font-black text-xl text-white">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue to-blue3
+                              flex items-center justify-center font-display font-black text-xl text-bg">
                 {user?.initials}
               </div>
               <div>
