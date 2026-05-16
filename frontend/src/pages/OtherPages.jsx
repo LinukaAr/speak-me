@@ -85,7 +85,7 @@ export function FamilyPage() {
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, marginBottom: 18 }}>🚨 Emergency Settings</div>
           {[
             ['Send location with emergency alert', 'Emergency contacts receive your GPS location', sendLocation, setSendLocation],
-            ['Alert on 4+ hours inactivity', "Notify carers if you haven't used SilentStage", inactivityAlert, setInactivityAlert],
+            ['Alert on 4+ hours inactivity', "Notify carers if you haven't used SpeakMe", inactivityAlert, setInactivityAlert],
             ['Allow carer to speak on my behalf', 'Primary Carer can use your voice clone if you cannot type', carerSpeak, setCarerSpeak],
           ].map(([title, desc, val, setter]) => (
             <div key={title} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -158,7 +158,7 @@ export function SignLanguagePage() {
 
       <h2 style={{ fontSize: 40, marginBottom: 10 }}>Sign → Your Voice</h2>
       <p style={{ color: 'var(--text-2)', fontSize: 15, maxWidth: 560, marginBottom: 32, lineHeight: 1.65 }}>
-        Make a sign in front of your camera. SilentStage recognises it and speaks the phrase in your cloned voice — instantly.
+        Make a sign in front of your camera. SpeakMe recognises it and speaks the phrase in your cloned voice — instantly.
       </p>
 
       {/* Concept mockup */}
@@ -324,7 +324,7 @@ export function SettingsPage() {
           </div>
           {[
             ['Store speech history', 'Save all spoken phrases for replay', storeHistory, setStoreHistory],
-            ['Share usage analytics', 'Help improve SilentStage (anonymised)', analytics, setAnalytics],
+            ['Share usage analytics', 'Help improve SpeakMe (anonymised)', analytics, setAnalytics],
           ].map(([title, desc, val, setter]) => (
             <Card key={title} style={{ padding: '14px 18px', marginBottom: 9, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div><div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div><div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{desc}</div></div>
@@ -332,7 +332,7 @@ export function SettingsPage() {
             </Card>
           ))}
           <Card style={{ padding: '14px 18px', marginBottom: 9, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div><div style={{ fontSize: 14, fontWeight: 600 }}>Delete all my data</div><div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>Permanently delete voice clone and all data from SilentStage and ElevenLabs</div></div>
+            <div><div style={{ fontSize: 14, fontWeight: 600 }}>Delete all my data</div><div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>Permanently delete voice clone and all data from SpeakMe and ElevenLabs</div></div>
             <Btn variant="danger" size="sm" onClick={() => showToast('⚠️ This action is irreversible. Please contact support.', 'error')}>
               Delete Data
             </Btn>

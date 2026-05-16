@@ -99,7 +99,7 @@ export default function Family() {
           <div className="flex flex-col gap-4">
             {[
               { key:'location',     title:'Send location with emergency alert', desc:'Emergency contacts receive your GPS coordinates' },
-              { key:'inactivity',   title:'Alert on 4+ hours inactivity',        desc:"Notify carers if you haven't used SilentStage" },
+              { key:'inactivity',   title:'Alert on 4+ hours inactivity',        desc:"Notify carers if you haven't used SpeakMe" },
               { key:'carerTakeover',title:'Allow carer to speak on my behalf',   desc:'Primary Carer can use your voice clone if you cannot' },
             ].map(({ key, title, desc }) => (
               <div key={key} className="flex items-center justify-between gap-4">

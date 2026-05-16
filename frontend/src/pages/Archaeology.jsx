@@ -43,7 +43,7 @@ export default function Archaeology() {
       </h1>
       <p className="text-muted text-[15px] leading-relaxed max-w-xl mb-8">
         Your voice exists in old videos, voicemails, and WhatsApp messages.
-        SilentStage recovers it — even from 3 seconds of audio.
+        SpeakMe recovers it — even from 3 seconds of audio.
       </p>
 
       {/* Summary card */}

@@ -73,14 +73,14 @@ export default function Login() {
 
           <div className="lg:hidden flex items-center gap-2.5 font-display font-black text-xl mb-8">
             <div className="w-8 h-8 rounded-lg bg-blue flex items-center justify-center">🎙</div>
-            Silent<span className="text-blue">Stage</span>
+            Speake<span className="text-blue">Me</span>
           </div>
 
           <h2 className="font-display font-black text-3xl tracking-tight mb-1.5">
             Welcome back
           </h2>
           <p className="text-muted text-sm mb-8">
-            Sign in to your SilentStage account
+            Sign in to your SpeakMe account
           </p>
 
           <button

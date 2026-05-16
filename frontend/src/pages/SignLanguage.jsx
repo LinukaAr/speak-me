@@ -28,7 +28,7 @@ export default function SignLanguage() {
         Sign → Your Voice
       </h1>
       <p className="text-muted text-[15px] max-w-lg leading-relaxed mb-8">
-        The vision: make a sign in front of your camera — SilentStage recognises it
+        The vision: make a sign in front of your camera — SpeakMe recognises it
         and speaks the phrase in your own cloned voice, instantly.
       </p>
 
