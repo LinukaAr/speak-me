@@ -4,7 +4,7 @@ import { useAuthContext } from '@asgardeo/auth-react'
 import { useApp } from '@/context/AppContext'
 import {
   Mic, MessageSquare, Mic2, Search, Users, Hand,
-  Settings, Globe, Menu, X, ChevronRight, LogOut, HelpCircle,
+  Settings, Globe, Menu, X, ChevronRight, LogOut,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -14,7 +14,6 @@ const NAV_ITEMS = [
   { to: '/voice-banking', label: 'Voice Banking',      Icon: Mic2           },
   { to: '/archaeology',   label: 'Voice Archaeology',  Icon: Search         },
   { to: '/settings',      label: 'Settings',           Icon: Settings       },
-  { to: '/about',         label: 'Help',               Icon: HelpCircle     },
 ]
 
 export default function Navbar() {
