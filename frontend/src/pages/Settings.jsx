@@ -282,4 +282,3 @@ function Toggle({ on, onToggle }) {
     </button>
   )
 }
-function clsx(...cls) { return cls.filter(Boolean).join(' ') }
