@@ -98,7 +98,7 @@ export default function Login() {
                 Signing in…
               </>
             ) : (
-              'Sign In with Asgardeo →'
+              'Sign In→'
             )}
           </button>
 
