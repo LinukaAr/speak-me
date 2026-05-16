@@ -1,28 +1,20 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthContext } from '@asgardeo/auth-react'
 import { useApp } from '@/context/AppContext'
 
 export default function Login() {
+  const { state, signIn } = useAuthContext()
   const { login, toast } = useApp()
   const navigate = useNavigate()
-  const [email, setEmail]       = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading]   = useState(false)
-  const [isReg, setIsReg]       = useState(false)
 
-  const handleSubmit = () => {
-    if (!email || !password) { toast('⚠️ Please enter email and password'); return }
-    setLoading(true)
-    setTimeout(() => {
-      login(email)
-      toast('✓ Welcome back, Aiden! Your voice is ready.')
+  useEffect(() => {
+    if (state.isAuthenticated) {
+      login(state.username || state.email || '')
+      toast('✓ Welcome back! Your voice is ready.')
       navigate('/speak')
-    }, 900)
-  }
-
-  const inputCls = `w-full bg-card border border-border rounded-xl px-4 py-3
-                    text-ink text-sm placeholder:text-subtle
-                    focus:border-red/40 focus:bg-card/80 transition-colors outline-none`
+    }
+  }, [state.isAuthenticated])
 
   return (
     <div className="min-h-screen z-content grid grid-cols-1 lg:grid-cols-2">
@@ -65,7 +57,6 @@ export default function Login() {
           ))}
         </div>
 
-        {/* Stats */}
         <div className="flex gap-8 mt-12 pt-8 border-t border-border">
           {[['376K+','ALS patients by 2040'],['< 2s','Synthesis latency'],['91%','Voice similarity']].map(([n,l]) => (
             <div key={l}>
@@ -86,90 +77,32 @@ export default function Login() {
           </div>
 
           <h2 className="font-display font-black text-3xl tracking-tight mb-1.5">
-            {isReg ? 'Create account' : 'Welcome back'}
+            Welcome back
           </h2>
           <p className="text-muted text-sm mb-8">
-            {isReg ? 'Start restoring your voice today' : 'Sign in to your SilentStage account'}
+            Sign in to your SilentStage account
           </p>
 
-          <div className="flex flex-col gap-4">
-            {isReg && (
-              <div>
-                <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1.5">
-                  Full Name
-                </label>
-                <input className={inputCls} type="text" placeholder="Your full name" />
-              </div>
-            )}
-            <div>
-              <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1.5">
-                Email Address
-              </label>
-              <input
-                className={inputCls}
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1.5">
-                Password
-              </label>
-              <input
-                className={inputCls}
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-              />
-            </div>
-          </div>
-
           <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="w-full mt-5 py-3.5 bg-red text-white rounded-xl
+            onClick={() => signIn()}
+            disabled={state.isLoading}
+            className="w-full py-3.5 bg-red text-white rounded-xl
                        font-semibold text-sm tracking-wide
                        hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red/25
                        disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none
-                       transition-all active:scale-[.98]"
+                       transition-all active:scale-[.98] flex items-center justify-center gap-2"
           >
-            {loading ? 'Signing in…' : isReg ? 'Create Account →' : 'Sign In →'}
+            {state.isLoading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Signing in…
+              </>
+            ) : (
+              'Sign In with Asgardeo →'
+            )}
           </button>
 
-          <div className="flex items-center gap-3 my-5 text-[11px] text-subtle">
-            <div className="flex-1 h-px bg-border" />or continue with<div className="flex-1 h-px bg-border" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {[['🔵','Google'], ['🍎','Apple']].map(([ic, label]) => (
-              <button
-                key={label}
-                onClick={() => { login(`user@${label.toLowerCase()}.com`); navigate('/speak') }}
-                className="flex items-center justify-center gap-2
-                           py-2.5 bg-card border border-border rounded-xl
-                           text-sm text-ink hover:border-border2 hover:bg-white/5
-                           transition-all"
-              >
-                {ic} {label}
-              </button>
-            ))}
-          </div>
-
-          <p className="text-center text-xs text-muted mt-5">
-            {isReg ? 'Already have an account?' : "Don't have an account?"}{' '}
-            <button
-              onClick={() => setIsReg(p => !p)}
-              className="text-red hover:underline"
-            >
-              {isReg ? 'Sign in' : 'Create one'}
-            </button>
-          </p>
-          <p className="text-center text-xs text-muted mt-2">
+          <p className="text-center text-xs text-muted mt-8">
             <button
               onClick={() => toast('👨‍👩‍👧 Enter the family access code sent to you by a patient')}
               className="text-muted hover:text-ink transition-colors"

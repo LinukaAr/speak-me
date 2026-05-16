@@ -51,10 +51,12 @@ export function AppProvider({ children }) {
     setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3200)
   }, [])
 
-  const login = useCallback((email) => {
-    setUser({ name: 'Aiden Kumar', email, initials: 'AK' })
-    setVoiceId('v_ak_8x7f2')
-    setVoiceName('Aiden Kumar')
+  const login = useCallback((email, displayName) => {
+    const name = displayName || email?.split('@')[0] || 'User'
+    const initials = name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2)
+    setUser({ name, email, initials })
+    setVoiceId(`v_${initials.toLowerCase()}_${Math.random().toString(36).slice(2, 8)}`)
+    setVoiceName(name)
   }, [])
 
   const logout = useCallback(() => {

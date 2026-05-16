@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { AppProvider, useApp } from '@/context/AppContext'
+import { useAuthContext } from '@asgardeo/auth-react'
+import { AppProvider } from '@/context/AppContext'
 import Navbar from '@/components/layout/Navbar'
 import Toast from '@/components/ui/Toast'
 import Login from '@/pages/Login'
@@ -11,8 +12,9 @@ import SignLanguage from '@/pages/SignLanguage'
 import Settings from '@/pages/Settings'
 
 function ProtectedRoute({ children }) {
-  const { user } = useApp()
-  return user ? children : <Navigate to="/" replace />
+  const { state } = useAuthContext()
+  if (state.isLoading) return null
+  return state.isAuthenticated ? children : <Navigate to="/" replace />
 }
 
 function AppRoutes() {

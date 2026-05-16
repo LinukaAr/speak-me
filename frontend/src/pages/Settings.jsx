@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthContext } from '@asgardeo/auth-react'
 import { useApp } from '@/context/AppContext'
 import clsx from 'clsx'
 
@@ -17,6 +18,7 @@ const LANGS = [
 const NAV = ['Voice Clone','Language','Privacy','Emergency','Accessibility','Account']
 
 export default function Settings() {
+  const { signOut } = useAuthContext()
   const { user, logout, voiceName, toast } = useApp()
   const navigate = useNavigate()
   const [section, setSection] = useState('Voice Clone')
@@ -26,7 +28,7 @@ export default function Settings() {
   const [emToggles,   setEmToggles]   = useState({ location: true, inactivity: true })
   const [selLang, setSelLang] = useState('English')
 
-  const tog = (obj, set, key) => set(p => ({ ...p, [key]: !p[key] }))
+  const tog = (_obj, set, key) => set(p => ({ ...p, [key]: !p[key] }))
 
   return (
     <div className="z-content screen-enter grid grid-cols-[200px_1fr] min-h-[calc(100vh-65px)]">
@@ -51,7 +53,7 @@ export default function Settings() {
           ))}
           <div className="mt-auto pt-6">
             <button
-              onClick={() => { logout(); navigate('/') }}
+              onClick={() => { logout(); signOut() }}
               className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm
                          text-red hover:bg-red/8 w-full text-left transition-all"
             >
@@ -242,7 +244,7 @@ export default function Settings() {
             ))}
             <div className="pt-4 border-t border-border mt-4">
               <button
-                onClick={() => { logout(); navigate('/') }}
+                onClick={() => { logout(); signOut() }}
                 className="px-5 py-2.5 bg-red/10 border border-red/25 text-red text-sm font-bold
                            rounded-xl hover:bg-red/18 transition-colors"
               >
