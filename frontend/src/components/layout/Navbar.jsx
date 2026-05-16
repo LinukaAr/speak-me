@@ -5,6 +5,7 @@ import clsx from 'clsx'
 const NAV_ITEMS = [
   { to: '/speak',       label: '🎙 Speak'             },
   { to: '/phrases',     label: '💬 Quick Phrases'      },
+  { to: '/voice-banking', label: '🎤 Voice Banking'    },
   { to: '/archaeology', label: '🔍 Voice Archaeology'  },
   { to: '/family',      label: '👨‍👩‍👧 Family Access'      },
   { to: '/sign',        label: '🤟 Sign Language'      },

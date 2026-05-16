@@ -4,6 +4,7 @@ import { useApp } from '@/context/AppContext'
 import EmergencyStrip from '@/components/layout/EmergencyStrip'
 import PhraseCard from '@/components/ui/PhraseCard'
 import Waveform from '@/components/ui/Waveform'
+import { synthesise, handleApiError } from '@/lib/elevenlabs'
 import clsx from 'clsx'
 
 const LANGS = [
@@ -18,18 +19,51 @@ const SPEEDS = ['0.75×', '1.0×', '1.25×', '1.5×']
 const QTABS  = ['all', 'daily', 'medical', 'emergency']
 
 export default function Speak() {
-  const { user, voiceId, voiceName, speaking, lastSpoken, simulateSpeak, phrases, toast, outputLang, setOutputLang } = useApp()
+  const { user, voiceId, voiceName, voiceSettings, updateVoiceSettings, speaking, lastSpoken, simulateSpeak, phrases, toast, outputLang, setOutputLang } = useApp()
   const navigate = useNavigate()
   const [text,      setText]      = useState('')
   const [speed,     setSpeed]     = useState('1.0×')
   const [qTab,      setQTab]      = useState('all')
   const [voiceIn,   setVoiceIn]   = useState(false)
+  const [isSynthesizing, setIsSynthesizing] = useState(false)
   const textRef = useRef(null)
+  const audioRef = useRef(null)
 
-  const handleSpeak = () => {
+  const handleSpeak = async () => {
+    if (!voiceId) {
+      toast('⚠️ No voice cloned yet. Please visit Voice Banking first.', 'error')
+      return
+    }
+
     const t = text.trim() || "Good morning, how are you feeling today?"
-    simulateSpeak(t)
-    toast('🎙 Speaking in your cloned voice…')
+    
+    try {
+      setIsSynthesizing(true)
+      simulateSpeak(t) // Start visual feedback immediately
+      
+      // Convert voice settings from 0-100 to 0-1 range for API
+      const settings = {
+        stability: voiceSettings.stability / 100,
+        similarity_boost: voiceSettings.similarityBoost / 100,
+      }
+      
+      const audioUrl = await synthesise(t, voiceId, settings)
+      
+      // Play the synthesized audio
+      if (audioRef.current) {
+        audioRef.current.pause()
+      }
+      audioRef.current = new Audio(audioUrl)
+      audioRef.current.play()
+      
+      toast('🎙 Speaking in your cloned voice…')
+    } catch (error) {
+      const errorMessage = handleApiError(error)
+      toast(`❌ ${errorMessage}`, 'error')
+      console.error('Speech synthesis error:', error)
+    } finally {
+      setIsSynthesizing(false)
+    }
   }
 
   const filtered = phrases
@@ -46,19 +80,40 @@ export default function Speak() {
           <EmergencyStrip />
 
           {/* Voice badge */}
-          <div className="inline-flex items-center gap-3
-                          bg-green/8 border border-green/20
-                          px-4 py-2.5 rounded-full mb-6">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red to-purple
-                            flex items-center justify-center
-                            font-display font-black text-xs text-white">
-              {user?.initials}
+          {voiceId ? (
+            <div className="inline-flex items-center gap-3
+                            bg-green/8 border border-green/20
+                            px-4 py-2.5 rounded-full mb-6">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red to-purple
+                              flex items-center justify-center
+                              font-display font-black text-xs text-white">
+                {user?.initials}
+              </div>
+              <div>
+                <strong className="text-green text-xs block leading-none mb-0.5">● Voice Active</strong>
+                <span className="text-muted text-[11px]">{voiceName} · ElevenLabs Clone</span>
+              </div>
             </div>
-            <div>
-              <strong className="text-green text-xs block leading-none mb-0.5">● Voice Active</strong>
-              <span className="text-muted text-[11px]">{voiceName} · ElevenLabs Clone · 91% similarity</span>
+          ) : (
+            <div className="inline-flex items-center gap-3
+                            bg-amber/8 border border-amber/20
+                            px-4 py-2.5 rounded-full mb-6">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber to-orange
+                              flex items-center justify-center
+                              font-display font-black text-xs text-white">
+                ⚠️
+              </div>
+              <div>
+                <strong className="text-amber text-xs block leading-none mb-0.5">No Voice Cloned</strong>
+                <button 
+                  onClick={() => navigate('/voice-banking')}
+                  className="text-muted text-[11px] hover:text-ink underline"
+                >
+                  Visit Voice Banking to clone your voice →
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Language selector */}
           <div className="flex items-center gap-1.5 mb-4 flex-wrap">
@@ -126,12 +181,16 @@ export default function Speak() {
               </div>
               <button
                 onClick={handleSpeak}
-                className="flex items-center gap-2 px-5 py-2
-                           bg-red text-white text-sm font-semibold rounded-xl
-                           hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red/30
-                           transition-all active:scale-[.97]"
+                disabled={!voiceId || isSynthesizing}
+                className={clsx(
+                  "flex items-center gap-2 px-5 py-2",
+                  "text-sm font-semibold rounded-xl transition-all",
+                  voiceId && !isSynthesizing
+                    ? "bg-red text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red/30 active:scale-[.97]"
+                    : "bg-border text-subtle cursor-not-allowed"
+                )}
               >
-                ▶ Speak Now
+                {isSynthesizing ? '⏳ Synthesizing...' : '▶ Speak Now'}
               </button>
             </div>
           </div>
@@ -218,13 +277,40 @@ export default function Speak() {
 
           {/* Voice settings */}
           <SideCard title="⚙️ Voice Settings">
-            {[['Stability', 75], ['Similarity Boost', 85]].map(([label, val]) => (
-              <div key={label} className="mb-3 last:mb-0">
-                <div className="text-xs text-muted mb-1.5">{label}</div>
-                <input type="range" min={0} max={100} defaultValue={val}
-                  className="w-full accent-red h-1" />
-              </div>
-            ))}
+            {voiceId ? (
+              <>
+                <div className="mb-3">
+                  <div className="flex justify-between items-center text-xs mb-1.5">
+                    <span className="text-muted">Stability</span>
+                    <span className="text-ink font-semibold">{voiceSettings.stability}%</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min={0} 
+                    max={100} 
+                    value={voiceSettings.stability}
+                    onChange={(e) => updateVoiceSettings({ stability: parseInt(e.target.value) })}
+                    className="w-full accent-red h-1" 
+                  />
+                </div>
+                <div className="mb-0">
+                  <div className="flex justify-between items-center text-xs mb-1.5">
+                    <span className="text-muted">Similarity Boost</span>
+                    <span className="text-ink font-semibold">{voiceSettings.similarityBoost}%</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min={0} 
+                    max={100} 
+                    value={voiceSettings.similarityBoost}
+                    onChange={(e) => updateVoiceSettings({ similarityBoost: parseInt(e.target.value) })}
+                    className="w-full accent-red h-1" 
+                  />
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-muted">Clone your voice first to adjust settings</p>
+            )}
           </SideCard>
 
           {/* Family online */}
