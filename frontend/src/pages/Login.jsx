@@ -1,23 +1,79 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '@/context/AppContext'
+import { auth, handleSupabaseError } from '@/lib/supabase'
 
 export default function Login() {
   const { login, toast } = useApp()
   const navigate = useNavigate()
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
   const [loading, setLoading]   = useState(false)
   const [isReg, setIsReg]       = useState(false)
 
-  const handleSubmit = () => {
-    if (!email || !password) { toast('⚠️ Please enter email and password'); return }
+  const handleSubmit = async () => {
+    if (!email || !password) { 
+      toast('⚠️ Please enter email and password')
+      return 
+    }
+
+    if (isReg && !fullName) {
+      toast('⚠️ Please enter your full name')
+      return
+    }
+
     setLoading(true)
-    setTimeout(() => {
-      login(email)
-      toast('✓ Welcome back, Aiden! Your voice is ready.')
-      navigate('/speak')
-    }, 900)
+
+    try {
+      if (isReg) {
+        // Sign up
+        const { user, error } = await auth.signUp(email, password, fullName)
+        
+        if (error) {
+          toast(`❌ ${handleSupabaseError(error)}`)
+          setLoading(false)
+          return
+        }
+
+        // Update app context
+        login(email, fullName)
+        toast('✅ Account created! Welcome to SilentStage.')
+        navigate('/speak')
+      } else {
+        // Sign in
+        const { user, error } = await auth.signIn(email, password)
+        
+        if (error) {
+          toast(`❌ ${handleSupabaseError(error)}`)
+          setLoading(false)
+          return
+        }
+
+        // Update app context
+        login(email, user?.user_metadata?.full_name || 'User')
+        toast('✅ Welcome back!')
+        navigate('/speak')
+      }
+    } catch (error) {
+      console.error('Auth error:', error)
+      toast('❌ An error occurred. Please try again.')
+      setLoading(false)
+    }
+  }
+
+  const handleOAuthSignIn = async (provider) => {
+    try {
+      const { error } = await auth.signInWithOAuth(provider)
+      
+      if (error) {
+        toast(`❌ ${handleSupabaseError(error)}`)
+      }
+      // OAuth will redirect, so no need to handle success here
+    } catch (error) {
+      console.error('OAuth error:', error)
+      toast('❌ OAuth sign-in failed. Please try again.')
+    }
   }
 
   const inputCls = `w-full bg-card border border-border rounded-xl px-4 py-3
@@ -98,7 +154,13 @@ export default function Login() {
                 <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1.5">
                   Full Name
                 </label>
-                <input className={inputCls} type="text" placeholder="Your full name" />
+                <input 
+                  className={inputCls} 
+                  type="text" 
+                  placeholder="Your full name"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                />
               </div>
             )}
             <div>
@@ -146,10 +208,10 @@ export default function Login() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {[['🔵','Google'], ['🍎','Apple']].map(([ic, label]) => (
+            {[['🔵','Google', 'google'], ['🍎','Apple', 'apple']].map(([ic, label, provider]) => (
               <button
                 key={label}
-                onClick={() => { login(`user@${label.toLowerCase()}.com`); navigate('/speak') }}
+                onClick={() => handleOAuthSignIn(provider)}
                 className="flex items-center justify-center gap-2
                            py-2.5 bg-card border border-border rounded-xl
                            text-sm text-ink hover:border-border2 hover:bg-white/5

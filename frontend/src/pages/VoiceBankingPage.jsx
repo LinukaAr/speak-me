@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '@/context/AppContext'
 import AudioRecorder from '@/components/AudioRecorder'
@@ -6,6 +6,7 @@ import FileUploader from '@/components/FileUploader'
 import AudioFileList from '@/components/AudioFileList'
 import VoiceCloneProgress from '@/components/VoiceCloneProgress'
 import { cloneVoiceFromFiles, handleApiError } from '@/lib/elevenlabs'
+import { supabase, db, storage, handleSupabaseError } from '@/lib/supabase'
 
 export default function VoiceBankingPage() {
   const { user, setVoiceId, toast } = useApp()
@@ -17,6 +18,18 @@ export default function VoiceBankingPage() {
   const [errorMessage, setErrorMessage] = useState(null)
   const [clonedVoiceId, setClonedVoiceId] = useState(null)
   const [clonedVoiceName, setClonedVoiceName] = useState(null)
+  const [supabaseUserId, setSupabaseUserId] = useState(null)
+
+  // Get Supabase user ID on mount
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        setSupabaseUserId(session.user.id)
+      }
+    }
+    getUser()
+  }, [])
 
   // Calculate total duration
   const totalDuration = audioFiles.reduce((sum, file) => sum + file.duration, 0)
@@ -54,35 +67,110 @@ export default function VoiceBankingPage() {
       return
     }
 
+    // Check if Supabase is configured
+    const isSupabaseConfigured = supabaseUserId !== null
+
     try {
       setCloneStatus('uploading')
       setUploadProgress(0)
       setErrorMessage(null)
 
-      // Simulate upload progress (ElevenLabs API doesn't provide real progress)
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval)
-            return 90
-          }
-          return prev + 10
-        })
-      }, 300)
+      let voiceCloneId = null
+      let uploadedFilePaths = []
 
-      // Clone voice
+      // Step 1: Upload audio files to Supabase Storage (if configured)
+      if (isSupabaseConfigured) {
+        toast('📤 Uploading audio files to cloud storage...')
+        
+        // Create a temporary voice clone ID for organizing files
+        voiceCloneId = crypto.randomUUID()
+        
+        for (let i = 0; i < audioFiles.length; i++) {
+          const audioFile = audioFiles[i]
+          
+          // Convert blob to File object if needed
+          const file = audioFile.blob instanceof File 
+            ? audioFile.blob 
+            : new File([audioFile.blob], audioFile.name, { type: audioFile.blob.type })
+          
+          // Upload to Supabase Storage
+          const { path, error } = await storage.uploadAudio(supabaseUserId, voiceCloneId, file)
+          
+          if (error) {
+            console.error('Storage upload error:', error)
+            toast(`⚠️ Failed to upload ${audioFile.name} to storage`)
+            // Continue anyway - we can still clone without storage
+          } else {
+            uploadedFilePaths.push({
+              path,
+              fileName: audioFile.name,
+              fileSize: audioFile.blob.size,
+              duration: audioFile.duration,
+              source: audioFile.source,
+            })
+          }
+          
+          // Update progress
+          setUploadProgress(Math.floor(((i + 1) / audioFiles.length) * 50))
+        }
+        
+        toast('✅ Files uploaded to cloud storage')
+      }
+
+      // Step 2: Clone voice with ElevenLabs
+      toast('🧬 Cloning voice with ElevenLabs AI...')
+      setUploadProgress(60)
+      
       const result = await cloneVoiceFromFiles(user.name, audioFiles)
       
-      clearInterval(progressInterval)
+      setUploadProgress(80)
+      
+      // Step 3: Save voice clone metadata to Supabase (if configured)
+      if (isSupabaseConfigured && voiceCloneId) {
+        toast('💾 Saving voice clone metadata...')
+        
+        // Create voice clone record
+        const { voiceClone, error: voiceCloneError } = await db.createVoiceClone({
+          user_id: supabaseUserId,
+          elevenlabs_voice_id: result.voice_id,
+          voice_name: result.name,
+          is_active: true,
+          metadata: {
+            total_duration: totalDuration,
+            file_count: audioFiles.length,
+          },
+        })
+        
+        if (voiceCloneError) {
+          console.error('Failed to save voice clone:', voiceCloneError)
+          toast('⚠️ Voice cloned but failed to save metadata')
+        } else {
+          // Save audio recording metadata
+          for (const fileData of uploadedFilePaths) {
+            await db.createAudioRecording({
+              user_id: supabaseUserId,
+              voice_clone_id: voiceClone.id,
+              file_name: fileData.fileName,
+              file_path: fileData.path,
+              file_size: fileData.fileSize,
+              duration_seconds: fileData.duration,
+              source: fileData.source,
+            })
+          }
+          
+          toast('✅ Voice clone metadata saved')
+        }
+      }
+      
       setUploadProgress(100)
       
       // Set processing status
       setCloneStatus('processing')
       
-      // Simulate processing time (ElevenLabs usually takes 30-60 seconds)
+      // Simulate processing time
       await new Promise(resolve => setTimeout(resolve, 2000))
       
-      // Save voice ID
+      // Save voice ID to AppContext (and localStorage as fallback)
       setVoiceId(result.voice_id, result.name)
       setClonedVoiceId(result.voice_id)
       setClonedVoiceName(result.name)
@@ -90,6 +178,11 @@ export default function VoiceBankingPage() {
       // Set success status
       setCloneStatus('success')
       toast('✅ Voice cloned successfully!')
+      
+      // Show info about storage
+      if (!isSupabaseConfigured) {
+        console.info('💡 Tip: Configure Supabase to save audio files and enable multi-device sync')
+      }
       
     } catch (error) {
       console.error('Voice cloning error:', error)

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { supabase, db } from '@/lib/supabase'
 
 const AppContext = createContext(null)
 
@@ -34,6 +35,7 @@ export const FAMILY_MEMBERS = [
 
 export function AppProvider({ children }) {
   const [user,         setUser]         = useState(null)
+  const [session,      setSession]      = useState(null)
   const [voiceId,      setVoiceIdState] = useState(null)
   const [voiceName,    setVoiceNameState] = useState('')
   const [voiceCreatedAt, setVoiceCreatedAt] = useState(null)
@@ -49,9 +51,81 @@ export function AppProvider({ children }) {
   const [voiceArch,    setVoiceArch]    = useState({
     totalMinutes: 48, contributors: 6, clips: 23, similarity: 91, status: 'active'
   })
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true)
 
-  // Load voice data from localStorage on initialization
+  // Initialize Supabase auth listener
   useEffect(() => {
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      if (session?.user) {
+        loadUserData(session.user)
+      }
+      setIsLoadingAuth(false)
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      if (session?.user) {
+        loadUserData(session.user)
+      } else {
+        setUser(null)
+        setVoiceIdState(null)
+        setVoiceNameState('')
+        setVoiceCreatedAt(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // Load user data from Supabase
+  const loadUserData = async (supabaseUser) => {
+    try {
+      // Get profile
+      const { profile } = await db.getProfile(supabaseUser.id)
+      
+      if (profile) {
+        setUser({
+          name: profile.full_name || 'User',
+          email: profile.email,
+          initials: profile.initials || '??',
+        })
+      } else {
+        // Fallback to auth user data
+        setUser({
+          name: supabaseUser.user_metadata?.full_name || 'User',
+          email: supabaseUser.email,
+          initials: getInitials(supabaseUser.user_metadata?.full_name || 'User'),
+        })
+      }
+
+      // Get active voice clone
+      const { voiceClone } = await db.getActiveVoiceClone(supabaseUser.id)
+      if (voiceClone) {
+        setVoiceIdState(voiceClone.elevenlabs_voice_id)
+        setVoiceNameState(voiceClone.voice_name)
+        setVoiceCreatedAt(new Date(voiceClone.created_at).getTime())
+      }
+
+      // Get voice settings
+      const { settings } = await db.getVoiceSettings(supabaseUser.id)
+      if (settings) {
+        setVoiceSettingsState({
+          stability: settings.stability,
+          similarityBoost: settings.similarity_boost,
+        })
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error)
+      // Fallback to localStorage if Supabase fails
+      loadFromLocalStorage()
+    }
+  }
+
+  // Fallback: Load from localStorage
+  const loadFromLocalStorage = () => {
     const savedVoiceId = localStorage.getItem('silentStage_voiceId')
     const savedVoiceName = localStorage.getItem('silentStage_voiceName')
     const savedTimestamp = localStorage.getItem('silentStage_voiceCreatedAt')
@@ -71,27 +145,69 @@ export function AppProvider({ children }) {
         // Use default settings if parsing fails
       }
     }
-  }, [])
+  }
 
-  const setVoiceId = useCallback((voiceId, voiceName) => {
+  // Load voice data from localStorage on initialization (fallback)
+  useEffect(() => {
+    if (!session) {
+      loadFromLocalStorage()
+    }
+  }, [session])
+
+  const setVoiceId = useCallback(async (voiceId, voiceName) => {
     const timestamp = Date.now()
+    
+    // Save to localStorage as fallback
     localStorage.setItem('silentStage_voiceId', voiceId)
     localStorage.setItem('silentStage_voiceName', voiceName)
     localStorage.setItem('silentStage_voiceCreatedAt', timestamp.toString())
+    
+    // Update state
     setVoiceIdState(voiceId)
     setVoiceNameState(voiceName)
     setVoiceCreatedAt(timestamp)
-  }, [])
 
-  const updateVoiceSettings = useCallback((settings) => {
+    // Save to Supabase if authenticated
+    if (session?.user) {
+      try {
+        await db.createVoiceClone({
+          user_id: session.user.id,
+          elevenlabs_voice_id: voiceId,
+          voice_name: voiceName,
+          is_active: true,
+        })
+      } catch (error) {
+        console.error('Failed to save voice clone to Supabase:', error)
+        // Continue anyway - localStorage is the fallback
+      }
+    }
+  }, [session])
+
+  const updateVoiceSettings = useCallback(async (settings) => {
     const newSettings = { ...voiceSettings, ...settings }
     // Clamp values to 0-100 range
     newSettings.stability = Math.max(0, Math.min(100, newSettings.stability))
     newSettings.similarityBoost = Math.max(0, Math.min(100, newSettings.similarityBoost))
     
+    // Save to localStorage as fallback
     localStorage.setItem('silentStage_voiceSettings', JSON.stringify(newSettings))
+    
+    // Update state
     setVoiceSettingsState(newSettings)
-  }, [voiceSettings])
+
+    // Save to Supabase if authenticated
+    if (session?.user) {
+      try {
+        await db.upsertVoiceSettings(session.user.id, {
+          stability: newSettings.stability,
+          similarity_boost: newSettings.similarityBoost,
+        })
+      } catch (error) {
+        console.error('Failed to save voice settings to Supabase:', error)
+        // Continue anyway - localStorage is the fallback
+      }
+    }
+  }, [voiceSettings, session])
 
   const clearVoice = useCallback(() => {
     localStorage.removeItem('silentStage_voiceId')
@@ -108,15 +224,31 @@ export function AppProvider({ children }) {
     setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3200)
   }, [])
 
-  const login = useCallback((email) => {
-    setUser({ name: 'Aiden Kumar', email, initials: 'AK' })
-    // Don't auto-set voice ID on login anymore - let user clone their voice
+  const login = useCallback((email, fullName = 'User') => {
+    setUser({ 
+      name: fullName, 
+      email, 
+      initials: getInitials(fullName) 
+    })
   }, [])
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Sign out from Supabase
+    await supabase.auth.signOut()
+    
+    // Clear state
     setUser(null)
+    setSession(null)
     clearVoice()
-  }, [clearVoice])
+  }, [])
+
+  // Helper function to get initials
+  const getInitials = (name) => {
+    if (!name) return '??'
+    const parts = name.trim().split(' ')
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
 
   const simulateSpeak = useCallback((text) => {
     if (!text.trim()) return
@@ -131,7 +263,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
-      user, login, logout,
+      user, login, logout, session, isLoadingAuth,
       voiceId, voiceName, voiceCreatedAt, voiceSettings,
       setVoiceId, updateVoiceSettings, clearVoice,
       speaking, lastSpoken, simulateSpeak,
