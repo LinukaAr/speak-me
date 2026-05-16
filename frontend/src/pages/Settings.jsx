@@ -19,16 +19,21 @@ const NAV = ['Voice Clone','Language','Privacy','Emergency','Accessibility','Acc
 
 export default function Settings() {
   const { signOut } = useAuthContext()
-  const { user, logout, voiceName, toast } = useApp()
+  const { user, logout, voiceId, voiceName, voiceCreatedAt, voiceSettings, updateVoiceSettings, toast } = useApp()
   const navigate = useNavigate()
   const [section, setSection] = useState('Voice Clone')
-  const [stability, setStability] = useState(75)
-  const [similarity, setSimilarity] = useState(85)
   const [privToggles, setPrivToggles] = useState({ history: true, analytics: false })
   const [emToggles,   setEmToggles]   = useState({ location: true, inactivity: true })
   const [selLang, setSelLang] = useState('English')
 
   const tog = (_obj, set, key) => set(p => ({ ...p, [key]: !p[key] }))
+
+  // Format creation date
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'Unknown'
+    const date = new Date(timestamp)
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  }
 
   return (
     <div className="z-content screen-enter grid grid-cols-[200px_1fr] min-h-[calc(100vh-65px)]">
@@ -70,44 +75,68 @@ export default function Settings() {
           <div>
             <SectionTitle>🎙 Your Voice Clone</SectionTitle>
 
-            {/* Clone card */}
-            <div className="flex items-center gap-4 bg-green/6 border border-green/20
-                            rounded-xl p-5 mb-5">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue to-blue3
-                              flex items-center justify-center font-display font-black text-xl text-bg">
-                {user?.initials}
-              </div>
-              <div className="flex-1">
-                <div className="font-display font-bold text-base">{voiceName} — Professional Clone</div>
-                <div className="text-xs text-muted mt-0.5">Voice ID: v_ak_8x7f2 · 48m training audio · Created May 16, 2026</div>
-              </div>
-              <span className="bg-green/10 text-green border border-green/20 px-3 py-1.5 rounded-full text-xs font-bold">
-                91% Similarity
-              </span>
-            </div>
-
-            {[{ label:'Stability', val:stability, set:setStability, help:'Higher = more consistent; lower = more expressive' },
-              { label:'Similarity Boost', val:similarity, set:setSimilarity, help:'Higher = closer to original voice; lower = more creative' }
-            ].map(({ label, val, set, help }) => (
-              <SettingRow key={label} title={label} desc={help}>
-                <div className="flex items-center gap-3">
-                  <input type="range" min={0} max={100} value={val}
-                    onChange={e => set(+e.target.value)}
-                    className="w-32 accent-blue" />
-                  <span className="text-xs text-muted w-8 text-right">{val}%</span>
+            {voiceId ? (
+              <>
+                {/* Clone card */}
+                <div className="flex items-center gap-4 bg-green/6 border border-green/20
+                                rounded-xl p-5 mb-5">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-red to-purple
+                                  flex items-center justify-center font-display font-black text-xl text-white">
+                    {user?.initials}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-display font-bold text-base">{voiceName} — Professional Clone</div>
+                    <div className="text-xs text-muted mt-0.5">
+                      Voice ID: {voiceId.slice(0, 12)}... · Created {formatDate(voiceCreatedAt)}
+                    </div>
+                  </div>
+                  <span className="bg-green/10 text-green border border-green/20 px-3 py-1.5 rounded-full text-xs font-bold">
+                    ● Active
+                  </span>
                 </div>
-              </SettingRow>
-            ))}
 
-            <SettingRow title="Re-train voice clone" desc="Add more recordings to improve similarity score">
-              <button
-                onClick={() => { navigate('/archaeology'); toast('🔍 Adding more audio via Voice Archaeology…') }}
-                className="px-4 py-1.5 bg-blue/10 border border-blue/25 text-blue text-xs font-bold
-                           rounded-lg hover:bg-blue/18 transition-colors"
-              >
-                Add Audio
-              </button>
-            </SettingRow>
+                {[{ label:'Stability', val:voiceSettings.stability, help:'Higher = more consistent; lower = more expressive' },
+                  { label:'Similarity Boost', val:voiceSettings.similarityBoost, help:'Higher = closer to original voice; lower = more creative' }
+                ].map(({ label, val, help }) => (
+                  <SettingRow key={label} title={label} desc={help}>
+                    <div className="flex items-center gap-3">
+                      <input type="range" min={0} max={100} value={val}
+                        onChange={e => {
+                          const key = label === 'Stability' ? 'stability' : 'similarityBoost'
+                          updateVoiceSettings({ [key]: +e.target.value })
+                        }}
+                        className="w-32 accent-red" />
+                      <span className="text-xs text-muted w-8 text-right">{val}%</span>
+                    </div>
+                  </SettingRow>
+                ))}
+
+                <SettingRow title="Update voice clone" desc="Add more recordings or create a new voice clone">
+                  <button
+                    onClick={() => { navigate('/voice-banking'); toast('🎙 Opening Voice Banking…') }}
+                    className="px-4 py-1.5 bg-red/10 border border-red/25 text-red text-xs font-bold
+                               rounded-lg hover:bg-red/18 transition-colors"
+                  >
+                    Voice Banking
+                  </button>
+                </SettingRow>
+              </>
+            ) : (
+              <div className="bg-amber/6 border border-amber/20 rounded-xl p-6 text-center">
+                <div className="text-4xl mb-3">🎙</div>
+                <h3 className="font-display font-bold text-lg mb-2">No Voice Clone Yet</h3>
+                <p className="text-sm text-muted mb-4">
+                  Create your voice clone to start speaking with your own voice
+                </p>
+                <button
+                  onClick={() => navigate('/voice-banking')}
+                  className="px-5 py-2.5 bg-red text-white text-sm font-bold
+                             rounded-xl hover:shadow-lg hover:shadow-red/30 transition-all"
+                >
+                  Clone Your Voice
+                </button>
+              </div>
+            )}
           </div>
         )}
 

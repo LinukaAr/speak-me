@@ -4,16 +4,30 @@ import { useAuthContext } from '@asgardeo/auth-react'
 import { useApp } from '@/context/AppContext'
 
 export default function Login() {
-  const { state, signIn } = useAuthContext()
+  const { state, signIn, getBasicUserInfo } = useAuthContext()
   const { login, toast } = useApp()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (state.isAuthenticated) {
-      login(state.username || state.email || '')
-      toast('✓ Welcome back! Your voice is ready.')
-      navigate('/speak')
-    }
+    if (!state.isAuthenticated) return
+
+    getBasicUserInfo()
+      .then(info => {
+        const email = info?.email || info?.username || ''
+        const displayName = info?.displayName || info?.givenName || info?.username || email.split('@')[0]
+        const userId = info?.sub || info?.username || email
+
+        login(email, displayName, userId)
+        toast('✓ Welcome back! Your voice is ready.')
+        navigate('/speak')
+      })
+      .catch(() => {
+        // Fallback: use whatever is on state
+        const email = state.username || ''
+        login(email, email.split('@')[0], email)
+        toast('✓ Signed in.')
+        navigate('/speak')
+      })
   }, [state.isAuthenticated])
 
   return (
@@ -98,7 +112,7 @@ export default function Login() {
                 Signing in…
               </>
             ) : (
-              'Sign In→'
+              'Sign In →'
             )}
           </button>
 

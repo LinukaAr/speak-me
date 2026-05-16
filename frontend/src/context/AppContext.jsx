@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { supabase, db } from '@/lib/supabase'
 
 const AppContext = createContext(null)
 
@@ -34,16 +35,154 @@ export const FAMILY_MEMBERS = [
 
 export function AppProvider({ children }) {
   const [user,         setUser]         = useState(null)
-  const [voiceId,      setVoiceId]      = useState(null)
-  const [voiceName,    setVoiceName]    = useState('')
+  const [supabaseUserId, setSupabaseUserId] = useState(null) // For Supabase database operations
+  const [voiceId,      setVoiceIdState] = useState(null)
+  const [voiceName,    setVoiceNameState] = useState('')
+  const [voiceCreatedAt, setVoiceCreatedAt] = useState(null)
+  const [voiceSettings, setVoiceSettingsState] = useState({
+    stability: 75,
+    similarityBoost: 85,
+  })
   const [speaking,     setSpeaking]     = useState(false)
   const [lastSpoken,   setLastSpoken]   = useState('')
   const [toasts,       setToasts]       = useState([])
   const [phrases,      setPhrases]      = useState(PHRASES)
   const [outputLang,   setOutputLang]   = useState('English')
+  const [useDemoMode,  setUseDemoMode]  = useState(false) // Toggle between demo (browser) and real (ElevenLabs)
   const [voiceArch,    setVoiceArch]    = useState({
     totalMinutes: 48, contributors: 6, clips: 23, similarity: 91, status: 'active'
   })
+
+  // Load voice data from Supabase or localStorage on mount
+  useEffect(() => {
+    loadVoiceData()
+  }, [supabaseUserId])
+
+  // Load voice data from Supabase (if user ID available) or localStorage
+  const loadVoiceData = async () => {
+    if (supabaseUserId) {
+      try {
+        // Get active voice clone from Supabase
+        const { voiceClone, error: voiceError } = await db.getActiveVoiceClone(supabaseUserId)
+        if (voiceError) {
+          console.warn('Could not load voice clone from Supabase:', voiceError)
+          // Don't throw - fallback to localStorage
+        } else if (voiceClone) {
+          setVoiceIdState(voiceClone.elevenlabs_voice_id)
+          setVoiceNameState(voiceClone.voice_name)
+          setVoiceCreatedAt(new Date(voiceClone.created_at).getTime())
+        }
+
+        // Get voice settings from Supabase
+        const { settings, error: settingsError } = await db.getVoiceSettings(supabaseUserId)
+        if (settingsError) {
+          console.warn('Could not load voice settings from Supabase:', settingsError)
+          // Don't throw - use defaults
+        } else if (settings) {
+          setVoiceSettingsState({
+            stability: settings.stability,
+            similarityBoost: settings.similarity_boost,
+          })
+        }
+      } catch (error) {
+        console.error('Error loading voice data from Supabase:', error)
+        // Fallback to localStorage - don't let Supabase errors break the app
+      }
+      
+      // Always try localStorage as fallback
+      loadFromLocalStorage()
+    } else {
+      // No Supabase user ID, load from localStorage
+      loadFromLocalStorage()
+    }
+  }
+
+  // Fallback: Load from localStorage
+  const loadFromLocalStorage = () => {
+    const savedVoiceId = localStorage.getItem('silentStage_voiceId')
+    const savedVoiceName = localStorage.getItem('silentStage_voiceName')
+    const savedTimestamp = localStorage.getItem('silentStage_voiceCreatedAt')
+    const savedSettings = localStorage.getItem('silentStage_voiceSettings')
+
+    if (savedVoiceId && savedVoiceName) {
+      setVoiceIdState(savedVoiceId)
+      setVoiceNameState(savedVoiceName)
+      setVoiceCreatedAt(savedTimestamp ? parseInt(savedTimestamp) : null)
+    }
+
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings)
+        setVoiceSettingsState(settings)
+      } catch (e) {
+        // Use default settings if parsing fails
+      }
+    }
+  }
+
+  const setVoiceId = useCallback(async (voiceId, voiceName) => {
+    const timestamp = Date.now()
+    
+    // Save to localStorage as fallback
+    localStorage.setItem('silentStage_voiceId', voiceId)
+    localStorage.setItem('silentStage_voiceName', voiceName)
+    localStorage.setItem('silentStage_voiceCreatedAt', timestamp.toString())
+    
+    // Update state
+    setVoiceIdState(voiceId)
+    setVoiceNameState(voiceName)
+    setVoiceCreatedAt(timestamp)
+
+    // Save to Supabase if user ID available
+    if (supabaseUserId) {
+      try {
+        await db.createVoiceClone({
+          user_id: supabaseUserId,
+          elevenlabs_voice_id: voiceId,
+          voice_name: voiceName,
+          is_active: true,
+        })
+      } catch (error) {
+        console.error('Failed to save voice clone to Supabase:', error)
+        // Continue anyway - localStorage is the fallback
+      }
+    }
+  }, [supabaseUserId])
+
+  const updateVoiceSettings = useCallback(async (settings) => {
+    const newSettings = { ...voiceSettings, ...settings }
+    // Clamp values to 0-100 range
+    newSettings.stability = Math.max(0, Math.min(100, newSettings.stability))
+    newSettings.similarityBoost = Math.max(0, Math.min(100, newSettings.similarityBoost))
+    
+    // Save to localStorage as fallback
+    localStorage.setItem('silentStage_voiceSettings', JSON.stringify(newSettings))
+    
+    // Update state
+    setVoiceSettingsState(newSettings)
+
+    // Save to Supabase if user ID available
+    if (supabaseUserId) {
+      try {
+        await db.upsertVoiceSettings(supabaseUserId, {
+          stability: newSettings.stability,
+          similarity_boost: newSettings.similarityBoost,
+        })
+      } catch (error) {
+        console.error('Failed to save voice settings to Supabase:', error)
+        // Continue anyway - localStorage is the fallback
+      }
+    }
+  }, [voiceSettings, supabaseUserId])
+
+  const clearVoice = useCallback(() => {
+    localStorage.removeItem('silentStage_voiceId')
+    localStorage.removeItem('silentStage_voiceName')
+    localStorage.removeItem('silentStage_voiceCreatedAt')
+    setVoiceIdState(null)
+    setVoiceNameState('')
+    setVoiceCreatedAt(null)
+  }, [])
 
   const toast = useCallback((msg, type = 'default') => {
     const id = Date.now()
@@ -51,17 +190,45 @@ export function AppProvider({ children }) {
     setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3200)
   }, [])
 
-  const login = useCallback((email, displayName) => {
+  // Login function - called by Asgardeo after authentication
+  const login = useCallback(async (email, displayName, asgardeoUserId) => {
     const name = displayName || email?.split('@')[0] || 'User'
     const initials = name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2)
+    
     setUser({ name, email, initials })
-    setVoiceId(`v_${initials.toLowerCase()}_${Math.random().toString(36).slice(2, 8)}`)
-    setVoiceName(name)
+    
+    // Set Supabase user ID for database operations
+    // Use Asgardeo user ID as the Supabase user ID
+    if (asgardeoUserId) {
+      setSupabaseUserId(asgardeoUserId)
+      
+      // Create or update profile in Supabase
+      try {
+        const { profile, error } = await db.getProfile(asgardeoUserId)
+        
+        if (error || !profile) {
+          // Profile doesn't exist, create it
+          await db.createProfile(asgardeoUserId, {
+            email: email,
+            full_name: name,
+            initials: initials,
+          })
+          console.log('✅ Profile created in Supabase')
+        } else {
+          console.log('✅ Profile already exists in Supabase')
+        }
+      } catch (error) {
+        console.error('Failed to create/check profile:', error)
+        // Don't block login if profile creation fails
+      }
+    }
   }, [])
 
   const logout = useCallback(() => {
-    setUser(null); setVoiceId(null); setVoiceName('')
-  }, [])
+    setUser(null)
+    setSupabaseUserId(null)
+    clearVoice()
+  }, [clearVoice])
 
   const simulateSpeak = useCallback((text) => {
     if (!text.trim()) return
@@ -76,12 +243,14 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
-      user, login, logout,
-      voiceId, voiceName, setVoiceId, setVoiceName,
+      user, login, logout, supabaseUserId,
+      voiceId, voiceName, voiceCreatedAt, voiceSettings,
+      setVoiceId, updateVoiceSettings, clearVoice,
       speaking, lastSpoken, simulateSpeak,
       toasts, toast,
       phrases, incrementPhrase,
       outputLang, setOutputLang,
+      useDemoMode, setUseDemoMode,
       voiceArch, setVoiceArch,
     }}>
       {children}

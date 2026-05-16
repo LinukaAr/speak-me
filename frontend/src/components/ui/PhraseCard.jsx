@@ -1,23 +1,55 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useApp } from '@/context/AppContext'
+import { synthesise, handleApiError } from '@/lib/elevenlabs'
 import clsx from 'clsx'
 
 export default function PhraseCard({ phrase }) {
-  const { simulateSpeak, incrementPhrase, toast } = useApp()
+  const { voiceId, voiceSettings, simulateSpeak, incrementPhrase, toast } = useApp()
   const [playing, setPlaying] = useState(false)
+  const audioRef = useRef(null)
 
-  const play = () => {
+  const play = async () => {
     if (playing) return
+
     setPlaying(true)
     incrementPhrase(phrase.id)
     simulateSpeak(phrase.text)
-    toast(`🎙 "${phrase.text.slice(0, 48)}${phrase.text.length > 48 ? '…' : ''}"`)
-    setTimeout(() => setPlaying(false), phrase.text.length * 55 + 900)
+
+    const activeVoiceId = voiceId || '21m00Tcm4TlvDq8ikWAM'
+
+    try {
+      const settings = {
+        stability: voiceSettings.stability / 100,
+        similarity_boost: voiceSettings.similarityBoost / 100,
+      }
+
+      const audioUrl = await synthesise(phrase.text, activeVoiceId, settings)
+
+      if (audioRef.current) audioRef.current.pause()
+      audioRef.current = new Audio(audioUrl)
+      audioRef.current.onended = () => setPlaying(false)
+      audioRef.current.play()
+
+      toast(`🎙 "${phrase.text.slice(0, 48)}${phrase.text.length > 48 ? '…' : ''}"`)
+    } catch (error) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+        const utterance = new SpeechSynthesisUtterance(phrase.text)
+        utterance.rate = 0.95
+        utterance.onend = () => setPlaying(false)
+        window.speechSynthesis.speak(utterance)
+        toast(`🎙 "${phrase.text.slice(0, 48)}${phrase.text.length > 48 ? '…' : ''}"`)
+      } else {
+        setPlaying(false)
+        toast(`❌ ${handleApiError(error)}`, 'error')
+      }
+    }
   }
 
   return (
     <button
       onClick={play}
+      disabled={playing}
       className={clsx(
         'relative group text-left w-full rounded-xl p-4 border transition-all duration-200',
         'hover:-translate-y-[2px] hover:shadow-xl',
@@ -26,9 +58,9 @@ export default function PhraseCard({ phrase }) {
           : 'bg-card border-border hover:border-border2 hover:shadow-black/40',
         playing && !phrase.urgent && 'border-green/40 bg-green/5 shadow-[0_0_0_2px_rgba(16,217,138,.15)]',
         playing && phrase.urgent  && 'border-red/60 shadow-[0_0_0_2px_rgba(232,54,93,.25)]',
+        playing && 'cursor-wait',
       )}
     >
-      {/* top shimmer */}
       <div className={clsx(
         'absolute top-0 left-0 right-0 h-[2px] rounded-t-xl opacity-0 group-hover:opacity-100 transition-opacity',
         phrase.urgent
