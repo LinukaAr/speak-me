@@ -100,9 +100,6 @@ export default function Login() {
               Try SpeakMe !
             </button>
           )}
-
-          <p className="text-center text-xs text-muted mt-8">
-          </p>
         </div>
       </div>
     </div>

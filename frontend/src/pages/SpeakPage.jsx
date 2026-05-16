@@ -66,6 +66,8 @@ export default function SpeakPage() {
     .filter(p => qTab === 'all' || p.cat === qTab)
     .slice(0, 8)
 
+  const emergencyPhrases = phrases.filter(p => p.urgent)
+
   return (
     <div className="z-content screen-enter px-6 py-8 max-w-3xl mx-auto">
 
@@ -200,7 +202,10 @@ export default function SpeakPage() {
           ))}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-          {filtered.map(p => <PhraseCard key={p.id} phrase={p} />)}
+          {qTab === 'emergency' 
+            ? emergencyPhrases.map(p => <PhraseCard key={p.id} phrase={p} />)
+            : filtered.map(p => <PhraseCard key={p.id} phrase={p} />)
+          }
         </div>
       </div>
 

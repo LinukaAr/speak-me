@@ -41,7 +41,7 @@ export default function PhrasesPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>🚨 Emergency Phrases — Always Active</div>
+            <div style={{ fontSize: 14, fontWeight: 700 }}>🚨 Emergency Phrases</div>
             <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>Always visible regardless of which tab is selected</div>
           </div>
           <Btn variant="danger" size="sm" style={{ background: 'var(--red)', color: '#fff', border: 'none', fontWeight: 700 }}
