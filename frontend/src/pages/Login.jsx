@@ -73,7 +73,7 @@ export default function Login() {
 
           <div className="lg:hidden flex items-center gap-2.5 font-display font-black text-xl mb-8">
             <div className="w-8 h-8 rounded-lg bg-blue flex items-center justify-center">🎙</div>
-            Speake<span className="text-blue">Me</span>
+            Speak<span className="text-blue">Me</span>
           </div>
 
           <h2 className="font-display font-black text-3xl tracking-tight mb-1.5">

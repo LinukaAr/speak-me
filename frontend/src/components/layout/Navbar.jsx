@@ -26,7 +26,7 @@ export default function Navbar() {
           className="flex items-center gap-2.5 font-display font-black text-lg tracking-tight shrink-0"
         >
           <div className="w-8 h-8 rounded-lg bg-blue flex items-center justify-center text-sm">🎙</div>
-          <span>Speake<span className="text-blue">Me</span></span>
+          <span>Speak<span className="text-blue">Me</span></span>
         </button>
 
         {/* Nav tabs */}
