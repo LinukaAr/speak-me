@@ -2,6 +2,10 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthContext } from '@asgardeo/auth-react'
 import { useApp } from '@/context/AppContext'
+import {
+  Mic, Globe, Lock, AlertTriangle, Accessibility, User,
+  ChevronRight, LogOut,
+} from 'lucide-react'
 import clsx from 'clsx'
 
 const LANGS = [
@@ -35,50 +39,87 @@ export default function Settings() {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
   }
 
-  return (
-    <div className="z-content screen-enter grid grid-cols-[200px_1fr] min-h-[calc(100vh-65px)]">
+  const ICONS = {
+    'Voice Clone':   Mic,
+    'Language':      Globe,
+    'Privacy':       Lock,
+    'Emergency':     AlertTriangle,
+    'Accessibility': Accessibility,
+    'Account':       User,
+  }
 
-      {/* ── SIDE NAV ── */}
-      <aside className="border-r border-border px-4 py-8 bg-surf/40">
-        <div className="flex flex-col gap-1">
-          {NAV.map(n => (
-            <button
-              key={n}
-              onClick={() => setSection(n)}
-              className={clsx(
-                'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all text-left',
-                section === n
-                  ? 'bg-blue/8 text-ink border border-blue/20'
-                  : 'text-muted hover:bg-blue/5 hover:text-ink border border-transparent'
-              )}
-            >
-              {{'Voice Clone':'🎙','Language':'🌍','Privacy':'🔒','Emergency':'🚨','Accessibility':'♿','Account':'👤'}[n]}
-              <span className="ml-1">{n}</span>
-            </button>
-          ))}
+  return (
+    <div className="z-content screen-enter flex flex-col md:grid md:grid-cols-[200px_1fr] min-h-[calc(100vh-65px)]">
+
+      {/* ── SIDE NAV (desktop) / TOP TAB STRIP (mobile) ── */}
+      <aside className="md:border-r md:border-border md:px-4 md:py-8 md:bg-surf/40
+                        border-b border-border bg-surf/40 md:border-b-0">
+        {/* Mobile: horizontal scrollable tab strip */}
+        <div className="flex md:hidden overflow-x-auto hide-scrollbar gap-1 px-3 py-2">
+          {NAV.map(n => {
+            const Icon = ICONS[n]
+            return (
+              <button
+                key={n}
+                onClick={() => setSection(n)}
+                className={clsx(
+                  'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all border shrink-0',
+                  section === n
+                    ? 'bg-blue/10 text-ink border-blue/20'
+                    : 'text-muted hover:bg-blue/5 hover:text-ink border-transparent'
+                )}
+              >
+                <Icon size={13} />
+                {n}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Desktop: vertical nav */}
+        <div className="hidden md:flex flex-col gap-1">
+          {NAV.map(n => {
+            const Icon = ICONS[n]
+            return (
+              <button
+                key={n}
+                onClick={() => setSection(n)}
+                className={clsx(
+                  'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all text-left',
+                  section === n
+                    ? 'bg-blue/8 text-ink border border-blue/20'
+                    : 'text-muted hover:bg-blue/5 hover:text-ink border border-transparent'
+                )}
+              >
+                <Icon size={15} />
+                <span>{n}</span>
+              </button>
+            )
+          })}
           <div className="mt-auto pt-6">
             <button
               onClick={() => { logout(); signOut() }}
               className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm
                          text-red hover:bg-red/8 w-full text-left transition-all"
             >
-              → Sign Out
+              <LogOut size={15} />
+              Sign Out
             </button>
           </div>
         </div>
       </aside>
 
       {/* ── BODY ── */}
-      <div className="px-10 py-8 overflow-y-auto">
+      <div className="px-4 sm:px-6 md:px-10 py-6 md:py-8 overflow-y-auto">
 
         {section === 'Voice Clone' && (
           <div>
-            <SectionTitle>🎙 Your Voice Clone</SectionTitle>
+            <SectionTitle icon={<Mic size={20} />}>Your Voice Clone</SectionTitle>
 
             {voiceId ? (
               <>
                 {/* Clone card */}
-                <div className="flex items-center gap-4 bg-green/6 border border-green/20
+                <div className="flex flex-wrap items-center gap-4 bg-green/6 border border-green/20
                                 rounded-xl p-5 mb-5">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-red to-purple
                                   flex items-center justify-center font-display font-black text-xl text-white">
@@ -90,8 +131,9 @@ export default function Settings() {
                       Voice ID: {voiceId.slice(0, 12)}... · Created {formatDate(voiceCreatedAt)}
                     </div>
                   </div>
-                  <span className="bg-green/10 text-green border border-green/20 px-3 py-1.5 rounded-full text-xs font-bold">
-                    ● Active
+                  <span className="flex items-center gap-1.5 bg-green/10 text-green border border-green/20 px-3 py-1.5 rounded-full text-xs font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green" />
+                    Active
                   </span>
                 </div>
 
@@ -142,7 +184,7 @@ export default function Settings() {
 
         {section === 'Language' && (
           <div>
-            <SectionTitle>🌍 Output Language</SectionTitle>
+            <SectionTitle icon={<Globe size={20} />}>Output Language</SectionTitle>
             <p className="text-sm text-muted mb-5">
               Version 1 (hackathon build) supports English only. Sinhala, Tamil and Hindi are
               top priorities for the post-hackathon roadmap.
@@ -185,7 +227,7 @@ export default function Settings() {
 
         {section === 'Privacy' && (
           <div>
-            <SectionTitle>🔒 Privacy & Data</SectionTitle>
+            <SectionTitle icon={<Lock size={20} />}>Privacy & Data</SectionTitle>
             {[
               { key:'history',   title:'Store speech history',      desc:'Save all spoken phrases for replay and history review' },
               { key:'analytics', title:'Share usage analytics',     desc:'Help improve SpeakMe with anonymised usage data'   },
@@ -212,7 +254,7 @@ export default function Settings() {
 
         {section === 'Emergency' && (
           <div>
-            <SectionTitle>🚨 Emergency Settings</SectionTitle>
+            <SectionTitle icon={<AlertTriangle size={20} />}>Emergency Settings</SectionTitle>
             {[
               { key:'location',   title:'Send location with alert',   desc:'Emergency contacts receive your GPS location when alert fires' },
               { key:'inactivity', title:'Alert on 4+ hours inactivity',desc:"Notify Primary Carer if you haven't used SpeakMe in 4 hours" },
@@ -233,7 +275,7 @@ export default function Settings() {
 
         {section === 'Accessibility' && (
           <div>
-            <SectionTitle>♿ Accessibility</SectionTitle>
+            <SectionTitle icon={<Accessibility size={20} />}>Accessibility</SectionTitle>
             <p className="text-sm text-muted mb-5">Customise SpeakMe for your specific needs and abilities.</p>
             {[['Larger text mode','Increase all font sizes for easier reading'],
               ['High contrast mode','Increase colour contrast for visual accessibility'],
@@ -249,8 +291,8 @@ export default function Settings() {
 
         {section === 'Account' && (
           <div>
-            <SectionTitle>👤 Account</SectionTitle>
-            <div className="flex items-center gap-4 bg-card border border-border rounded-xl p-5 mb-5">
+            <SectionTitle icon={<User size={20} />}>Account</SectionTitle>
+            <div className="flex flex-wrap items-center gap-4 bg-card border border-border rounded-xl p-5 mb-5">
               <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue to-blue3
                               flex items-center justify-center font-display font-black text-xl text-bg">
                 {user?.initials}
@@ -274,9 +316,10 @@ export default function Settings() {
             <div className="pt-4 border-t border-border mt-4">
               <button
                 onClick={() => { logout(); signOut() }}
-                className="px-5 py-2.5 bg-red/10 border border-red/25 text-red text-sm font-bold
+                className="flex items-center gap-2 px-5 py-2.5 bg-red/10 border border-red/25 text-red text-sm font-bold
                            rounded-xl hover:bg-red/18 transition-colors"
               >
+                <LogOut size={15} />
                 Sign Out
               </button>
             </div>
@@ -287,18 +330,23 @@ export default function Settings() {
   )
 }
 
-function SectionTitle({ children }) {
-  return <h2 className="font-display font-black text-2xl tracking-tight mb-5 pb-4 border-b border-border">{children}</h2>
+function SectionTitle({ icon, children }) {
+  return (
+    <h2 className="flex items-center gap-2.5 font-display font-black text-2xl tracking-tight mb-5 pb-4 border-b border-border">
+      {icon && <span className="text-muted">{icon}</span>}
+      {children}
+    </h2>
+  )
 }
 
 function SettingRow({ title, desc, children }) {
   return (
-    <div className="flex items-center justify-between py-4 border-b border-border last:border-0 gap-4">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 border-b border-border last:border-0 gap-2 sm:gap-4">
       <div>
         <div className="text-sm font-semibold text-ink">{title}</div>
         <div className="text-xs text-muted mt-0.5">{desc}</div>
       </div>
-      {children}
+      <div className="shrink-0">{children}</div>
     </div>
   )
 }

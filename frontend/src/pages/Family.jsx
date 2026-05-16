@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { FAMILY_MEMBERS } from '@/context/AppContext'
+import { AlertTriangle, Shield, Lock, Check, X, UserPlus } from 'lucide-react'
 import clsx from 'clsx'
 
 const ROLE_STYLE = {
@@ -86,16 +87,16 @@ export default function Family() {
         </div>
 
         <button
-          onClick={() => toast('📨 Invite link generated and copied to clipboard!')}
-          className="w-full py-4 border-2 border-dashed border-border2 rounded-xl
+          onClick={() => toast('Invite link generated and copied to clipboard!')}
+          className="flex items-center justify-center gap-2 w-full py-4 border-2 border-dashed border-border2 rounded-xl
                      text-sm text-muted hover:border-blue hover:text-blue transition-all mb-8"
         >
-          + Invite a family member, carer or emergency contact
+          <UserPlus size={16} /> Invite a family member, carer or emergency contact
         </button>
 
         {/* Emergency settings */}
         <div className="bg-red/6 border border-red/20 rounded-xl p-5">
-          <h3 className="font-display font-bold text-sm text-ink mb-4">🚨 Emergency Settings</h3>
+          <h3 className="flex items-center gap-2 font-display font-bold text-sm text-ink mb-4"><AlertTriangle size={15} /> Emergency Settings</h3>
           <div className="flex flex-col gap-4">
             {[
               { key:'location',     title:'Send location with emergency alert', desc:'Emergency contacts receive your GPS coordinates' },
@@ -128,7 +129,7 @@ export default function Family() {
       {/* ── SIDEBAR ── */}
       <div className="px-6 py-8 bg-surf/40 hidden xl:block">
         <div className="bg-card border border-border rounded-xl p-4 mb-4">
-          <h4 className="font-display font-bold text-xs mb-3">🔐 Access Permissions</h4>
+          <h4 className="flex items-center gap-1.5 font-display font-bold text-xs mb-3"><Shield size={13} /> Access Permissions</h4>
           <table className="w-full text-xs">
             <thead>
               <tr>
@@ -141,8 +142,8 @@ export default function Family() {
               {PERMS.map(([action, carer, family]) => (
                 <tr key={action} className="border-b border-white/4 last:border-0">
                   <td className="py-1.5 text-muted pr-2">{action}</td>
-                  <td className="py-1.5 text-center">{carer  ? <span className="text-green">✓</span> : <span className="text-subtle">✗</span>}</td>
-                  <td className="py-1.5 text-center">{family ? <span className="text-green">✓</span> : <span className="text-subtle">✗</span>}</td>
+                  <td className="py-1.5 text-center">{carer  ? <Check size={13} className="inline text-green" /> : <X size={13} className="inline text-subtle" />}</td>
+                  <td className="py-1.5 text-center">{family ? <Check size={13} className="inline text-green" /> : <X size={13} className="inline text-subtle" />}</td>
                 </tr>
               ))}
             </tbody>
@@ -150,7 +151,7 @@ export default function Family() {
         </div>
 
         <div className="bg-card border border-border rounded-xl p-4">
-          <h4 className="font-display font-bold text-xs mb-3">🔒 Privacy</h4>
+          <h4 className="flex items-center gap-1.5 font-display font-bold text-xs mb-3"><Lock size={13} /> Privacy</h4>
           <p className="text-xs text-muted leading-relaxed">
             All voice data is encrypted at rest and in transit. SOC2, HIPAA and GDPR compliant.
             <br /><br />

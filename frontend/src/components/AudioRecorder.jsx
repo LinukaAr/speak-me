@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useApp } from '@/context/AppContext'
 import Waveform from '@/components/ui/Waveform'
 import { getAudioDuration, generateAudioFileId, formatDuration } from '@/lib/audioUtils'
+import { Mic, Pause, Play, Square } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function AudioRecorder({ onRecordingComplete, onError }) {
@@ -135,7 +136,7 @@ export default function AudioRecorder({ onRecordingComplete, onError }) {
   return (
     <div className="bg-card border border-border rounded-xl p-6">
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-2xl">🎤</span>
+        <Mic size={20} className="text-muted" />
         <h3 className="font-display font-bold text-lg">Record Your Voice</h3>
       </div>
 
@@ -151,7 +152,7 @@ export default function AudioRecorder({ onRecordingComplete, onError }) {
                        hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red/30
                        transition-all active:scale-[.97]"
           >
-            <span className="text-lg">●</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-white" />
             Start Recording
           </button>
         </div>
@@ -175,26 +176,26 @@ export default function AudioRecorder({ onRecordingComplete, onError }) {
             {!isPaused ? (
               <button
                 onClick={pauseRecording}
-                className="px-4 py-2 bg-amber/10 border border-amber/25 text-amber
+                className="flex items-center gap-2 px-4 py-2 bg-amber/10 border border-amber/25 text-amber
                            text-sm font-semibold rounded-lg hover:bg-amber/18 transition-colors"
               >
-                ⏸ Pause
+                <Pause size={14} /> Pause
               </button>
             ) : (
               <button
                 onClick={resumeRecording}
-                className="px-4 py-2 bg-blue/10 border border-blue/25 text-blue
+                className="flex items-center gap-2 px-4 py-2 bg-blue/10 border border-blue/25 text-blue
                            text-sm font-semibold rounded-lg hover:bg-blue/18 transition-colors"
               >
-                ▶ Resume
+                <Play size={14} /> Resume
               </button>
             )}
             <button
               onClick={stopRecording}
-              className="px-4 py-2 bg-red/10 border border-red/25 text-red
+              className="flex items-center gap-2 px-4 py-2 bg-red/10 border border-red/25 text-red
                          text-sm font-semibold rounded-lg hover:bg-red/18 transition-colors"
             >
-              ⏹ Stop & Save
+              <Square size={14} /> Stop & Save
             </button>
           </div>
 

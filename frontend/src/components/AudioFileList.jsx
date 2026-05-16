@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { formatDuration, getQualityIndicator } from '@/lib/audioUtils'
+import { Mic, FolderOpen, Play, Pause, Trash2, AlertTriangle } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function AudioFileList({ audioFiles, onDelete, onPlay }) {
@@ -138,8 +139,8 @@ export default function AudioFileList({ audioFiles, onDelete, onPlay }) {
             )}
           >
             {/* Icon */}
-            <div className="text-2xl shrink-0">
-              {audioFile.source === 'recording' ? '🎤' : '📁'}
+            <div className="w-8 h-8 rounded-lg bg-surf flex items-center justify-center shrink-0 text-muted">
+              {audioFile.source === 'recording' ? <Mic size={16} /> : <FolderOpen size={16} />}
             </div>
 
             {/* File info */}
@@ -177,7 +178,7 @@ export default function AudioFileList({ audioFiles, onDelete, onPlay }) {
                 )}
                 title={playingFileId === audioFile.id ? 'Pause' : 'Play'}
               >
-                {playingFileId === audioFile.id ? '⏸' : '▶'}
+                {playingFileId === audioFile.id ? <Pause size={14} /> : <Play size={14} />}
               </button>
               <button
                 onClick={() => handleDelete(audioFile)}
@@ -186,7 +187,7 @@ export default function AudioFileList({ audioFiles, onDelete, onPlay }) {
                            transition-all"
                 title="Delete"
               >
-                🗑
+                <Trash2 size={14} />
               </button>
             </div>
           </div>
@@ -195,9 +196,9 @@ export default function AudioFileList({ audioFiles, onDelete, onPlay }) {
 
       {totalDuration < 3 && (
         <div className="mt-4 p-3 bg-red/5 border border-red/20 rounded-lg">
-          <p className="text-xs text-red">
-            ⚠️ <strong>Minimum duration not met.</strong> You need at least 3 seconds of audio to create a voice clone.
-            Current total: {formatDuration(totalDuration)}
+          <p className="flex items-start gap-2 text-xs text-red">
+            <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+            <span><strong>Minimum duration not met.</strong> You need at least 3 seconds of audio to create a voice clone. Current total: {formatDuration(totalDuration)}</span>
           </p>
         </div>
       )}

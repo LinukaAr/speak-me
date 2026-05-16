@@ -1,3 +1,4 @@
+import { CheckCircle2, XCircle, RefreshCw, ArrowRight } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function VoiceCloneProgress({
@@ -60,7 +61,7 @@ export default function VoiceCloneProgress({
       {/* Success State */}
       {status === 'success' && (
         <div className="text-center py-4">
-          <div className="text-5xl mb-4">✅</div>
+          <CheckCircle2 size={52} className="text-green mx-auto mb-4" />
           <h3 className="font-display font-bold text-2xl text-ink mb-2">
             Voice Clone Created!
           </h3>
@@ -87,7 +88,7 @@ export default function VoiceCloneProgress({
                        hover:-translate-y-0.5 hover:shadow-lg hover:shadow-green/30
                        transition-all active:scale-[.97]"
           >
-            Go to Speak Page →
+            <span className="flex items-center gap-2">Go to Speak Page <ArrowRight size={15} /></span>
           </button>
         </div>
       )}
@@ -95,7 +96,7 @@ export default function VoiceCloneProgress({
       {/* Error State */}
       {status === 'error' && (
         <div className="text-center py-4">
-          <div className="text-5xl mb-4">❌</div>
+          <XCircle size={52} className="text-red mx-auto mb-4" />
           <h3 className="font-display font-bold text-xl text-red mb-2">
             Voice Cloning Failed
           </h3>
@@ -108,10 +109,10 @@ export default function VoiceCloneProgress({
           <div className="flex gap-3 justify-center">
             <button
               onClick={onRetry}
-              className="px-5 py-2.5 bg-red/10 border border-red/25 text-red text-sm font-semibold
+              className="flex items-center gap-2 px-5 py-2.5 bg-red/10 border border-red/25 text-red text-sm font-semibold
                          rounded-xl hover:bg-red/18 transition-colors"
             >
-              🔄 Try Again
+              <RefreshCw size={14} /> Try Again
             </button>
           </div>
 

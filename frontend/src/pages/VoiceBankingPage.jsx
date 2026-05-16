@@ -7,6 +7,7 @@ import AudioFileList from '@/components/AudioFileList'
 import VoiceCloneProgress from '@/components/VoiceCloneProgress'
 import { cloneVoiceFromFiles, handleApiError } from '@/lib/elevenlabs'
 import { db, storage } from '@/lib/supabase'
+import { Dna, AlertTriangle, Mic, Upload, Volume2 } from 'lucide-react'
 
 export default function VoiceBankingPage() {
   const { user, supabaseUserId, setVoiceId, toast } = useApp()
@@ -234,7 +235,10 @@ export default function VoiceBankingPage() {
                        disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
                        transition-all active:scale-[.98]"
           >
-            {canClone ? '🧬 Clone My Voice with ElevenLabs' : '⚠️ Need at least 3 seconds of audio'}
+            {canClone
+              ? <span className="flex items-center justify-center gap-2"><Dna size={18} /> Clone My Voice with ElevenLabs</span>
+              : <span className="flex items-center justify-center gap-2"><AlertTriangle size={18} /> Need at least 3 seconds of audio</span>
+            }
           </button>
           <p className="text-center text-xs text-muted mt-2">
             Minimum 3 seconds required • Recommended: 1-5 minutes for good quality • 30+ minutes for professional quality
@@ -259,21 +263,27 @@ export default function VoiceBankingPage() {
           <h3 className="font-display font-bold text-lg mb-3">How it works</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <div className="text-3xl mb-2">1️⃣</div>
+              <div className="w-10 h-10 rounded-full bg-blue/10 border border-blue/20 flex items-center justify-center mb-3">
+                <Mic size={18} className="text-blue" />
+              </div>
               <h4 className="font-semibold text-sm mb-1">Record or Upload</h4>
               <p className="text-xs text-muted leading-relaxed">
                 Use your microphone to record your voice, or upload existing audio files (MP3, WAV, M4A).
               </p>
             </div>
             <div>
-              <div className="text-3xl mb-2">2️⃣</div>
+              <div className="w-10 h-10 rounded-full bg-purple/10 border border-purple/20 flex items-center justify-center mb-3">
+                <Dna size={18} className="text-purple" />
+              </div>
               <h4 className="font-semibold text-sm mb-1">Clone with AI</h4>
               <p className="text-xs text-muted leading-relaxed">
                 ElevenLabs AI analyzes your voice and creates a digital clone that captures your unique tone and style.
               </p>
             </div>
             <div>
-              <div className="text-3xl mb-2">3️⃣</div>
+              <div className="w-10 h-10 rounded-full bg-green/10 border border-green/20 flex items-center justify-center mb-3">
+                <Volume2 size={18} className="text-green" />
+              </div>
               <h4 className="font-semibold text-sm mb-1">Speak Anything</h4>
               <p className="text-xs text-muted leading-relaxed">
                 Type any text and hear it spoken in your own voice. Use it for communication, messages, or content creation.
