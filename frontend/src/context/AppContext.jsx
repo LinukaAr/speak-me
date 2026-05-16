@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { db } from '@/lib/supabase'
+import { supabase, db } from '@/lib/supabase'
 
 const AppContext = createContext(null)
 
@@ -48,6 +48,7 @@ export function AppProvider({ children }) {
   const [toasts,       setToasts]       = useState([])
   const [phrases,      setPhrases]      = useState(PHRASES)
   const [outputLang,   setOutputLang]   = useState('English')
+  const [useDemoMode,  setUseDemoMode]  = useState(false) // Toggle between demo (browser) and real (ElevenLabs)
   const [voiceArch,    setVoiceArch]    = useState({
     totalMinutes: 48, contributors: 6, clips: 23, similarity: 91, status: 'active'
   })
@@ -190,7 +191,7 @@ export function AppProvider({ children }) {
   }, [])
 
   // Login function - called by Asgardeo after authentication
-  const login = useCallback((email, displayName, asgardeoUserId) => {
+  const login = useCallback(async (email, displayName, asgardeoUserId) => {
     const name = displayName || email?.split('@')[0] || 'User'
     const initials = name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2)
     
@@ -200,6 +201,26 @@ export function AppProvider({ children }) {
     // Use Asgardeo user ID as the Supabase user ID
     if (asgardeoUserId) {
       setSupabaseUserId(asgardeoUserId)
+      
+      // Create or update profile in Supabase
+      try {
+        const { profile, error } = await db.getProfile(asgardeoUserId)
+        
+        if (error || !profile) {
+          // Profile doesn't exist, create it
+          await db.createProfile(asgardeoUserId, {
+            email: email,
+            full_name: name,
+            initials: initials,
+          })
+          console.log('✅ Profile created in Supabase')
+        } else {
+          console.log('✅ Profile already exists in Supabase')
+        }
+      } catch (error) {
+        console.error('Failed to create/check profile:', error)
+        // Don't block login if profile creation fails
+      }
     }
   }, [])
 
@@ -229,6 +250,7 @@ export function AppProvider({ children }) {
       toasts, toast,
       phrases, incrementPhrase,
       outputLang, setOutputLang,
+      useDemoMode, setUseDemoMode,
       voiceArch, setVoiceArch,
     }}>
       {children}

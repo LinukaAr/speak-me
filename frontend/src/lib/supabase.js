@@ -6,17 +6,11 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
-// Initialize Supabase client with proper headers
+// Initialize Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: false, // We're using Asgardeo for auth, not Supabase
     autoRefreshToken: false,
-  },
-  global: {
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
   },
 })
 
@@ -175,7 +169,7 @@ export const db = {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single()
+        .maybeSingle() // Returns null if no rows, doesn't throw error
 
       if (error) throw error
 
@@ -294,9 +288,9 @@ export const db = {
         .eq('is_active', true)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle() // Returns null if no rows, doesn't throw error
 
-      if (error && error.code !== 'PGRST116') throw error // PGRST116 = no rows
+      if (error) throw error
 
       return { voiceClone: data, error: null }
     } catch (error) {
@@ -340,9 +334,9 @@ export const db = {
         .from('voice_settings')
         .select('*')
         .eq('user_id', userId)
-        .single()
+        .maybeSingle() // Returns null if no rows, doesn't throw error
 
-      if (error && error.code !== 'PGRST116') throw error
+      if (error) throw error
 
       return { settings: data, error: null }
     } catch (error) {
@@ -523,11 +517,15 @@ export const storage = {
       const fileName = `${Date.now()}_${file.name}`
       const filePath = `${userId}/${voiceCloneId}/${fileName}`
 
+      // Ensure we have the correct content type
+      const contentType = file.type || 'audio/webm'
+
       const { data, error } = await supabase.storage
         .from('audio-recordings')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false,
+          contentType: contentType, // Explicitly set content type
         })
 
       if (error) throw error
