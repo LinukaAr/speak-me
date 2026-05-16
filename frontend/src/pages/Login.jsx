@@ -22,16 +22,16 @@ export default function Login() {
       {/* ── LEFT HERO ── */}
       <div className="hidden lg:flex flex-col justify-center px-16 py-12
                       bg-card border-r border-border">
-        <div className="inline-flex items-center gap-2 bg-red/10 border border-red/20
+        <div className="inline-flex items-center gap-2 bg-blue/10 border border-blue/20
                         px-3 py-1.5 rounded-full text-[11px] font-bold tracking-widest
-                        uppercase text-red mb-8 w-fit">
-          <span className="w-1.5 h-1.5 rounded-full bg-red animate-[pulse-dot_2s_ease_infinite]" />
+                        uppercase text-blue mb-8 w-fit">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue animate-[pulse-dot_2s_ease_infinite]" />
           Voice Restoration Platform
         </div>
 
         <h1 className="font-display font-black text-6xl leading-[0.9] tracking-[-3px] mb-5">
           Your voice.<br />
-          <span className="text-red">Always yours.</span>
+          <span className="text-blue">Always yours.</span>
         </h1>
 
         <p className="text-muted text-[15px] leading-relaxed max-w-sm mb-10">
@@ -48,7 +48,7 @@ export default function Login() {
             ['🤟', 'Sign language camera input — planned post-hackathon'],
           ].map(([icon, text]) => (
             <div key={text} className="flex items-center gap-3 text-sm text-muted">
-              <div className="w-8 h-8 rounded-lg bg-red/10 border border-red/15
+              <div className="w-8 h-8 rounded-lg bg-blue/10 border border-blue/15
                               flex items-center justify-center text-base shrink-0">
                 {icon}
               </div>
@@ -72,8 +72,8 @@ export default function Login() {
         <div className="max-w-sm mx-auto w-full">
 
           <div className="lg:hidden flex items-center gap-2.5 font-display font-black text-xl mb-8">
-            <div className="w-8 h-8 rounded-lg bg-red flex items-center justify-center">🎙</div>
-            Silent<span className="text-red">Stage</span>
+            <div className="w-8 h-8 rounded-lg bg-blue flex items-center justify-center">🎙</div>
+            Silent<span className="text-blue">Stage</span>
           </div>
 
           <h2 className="font-display font-black text-3xl tracking-tight mb-1.5">
@@ -86,9 +86,9 @@ export default function Login() {
           <button
             onClick={() => signIn()}
             disabled={state.isLoading}
-            className="w-full py-3.5 bg-red text-white rounded-xl
+            className="w-full py-3.5 bg-blue text-bg rounded-xl
                        font-semibold text-sm tracking-wide
-                       hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red/25
+                       hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue/25
                        disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none
                        transition-all active:scale-[.98] flex items-center justify-center gap-2"
           >

@@ -49,9 +49,9 @@ export default function Speak() {
           <div className="inline-flex items-center gap-3
                           bg-green/8 border border-green/20
                           px-4 py-2.5 rounded-full mb-6">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red to-purple
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue to-blue3
                             flex items-center justify-center
-                            font-display font-black text-xs text-white">
+                            font-display font-black text-xs text-bg">
               {user?.initials}
             </div>
             <div>
@@ -75,7 +75,7 @@ export default function Speak() {
                 className={clsx(
                   'px-3 py-1 rounded-full text-xs font-medium border transition-all',
                   outputLang === l.label
-                    ? 'bg-purple/12 border-purple/35 text-purple'
+                    ? 'bg-blue/12 border-blue/35 text-blue'
                     : l.live
                       ? 'border-border text-muted hover:text-ink hover:border-border2'
                       : 'border-border text-subtle opacity-50 cursor-not-allowed'
@@ -97,7 +97,7 @@ export default function Speak() {
               rows={5}
               className="w-full bg-card border-[1.5px] border-border rounded-2xl
                          px-5 pt-5 pb-16 text-ink text-[15px] leading-relaxed
-                         placeholder:text-subtle focus:border-red/40 transition-colors
+                         placeholder:text-subtle focus:border-blue/40 transition-colors
                          font-body"
             />
             {/* Toolbar inside textarea */}
@@ -127,8 +127,8 @@ export default function Speak() {
               <button
                 onClick={handleSpeak}
                 className="flex items-center gap-2 px-5 py-2
-                           bg-red text-white text-sm font-semibold rounded-xl
-                           hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red/30
+                           bg-blue text-bg text-sm font-semibold rounded-xl
+                           hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue/30
                            transition-all active:scale-[.97]"
               >
                 ▶ Speak Now
@@ -145,7 +145,7 @@ export default function Speak() {
             <Waveform bars={18} active={speaking} className="mb-3" />
             {lastSpoken && (
               <div className="mt-3 px-4 py-3 bg-surf rounded-xl
-                              text-sm text-muted italic border-l-2 border-red">
+                              text-sm text-muted italic border-l-2 border-blue3">
                 "{lastSpoken.slice(0, 90)}{lastSpoken.length > 90 ? '…' : ''}"
               </div>
             )}
@@ -169,7 +169,7 @@ export default function Speak() {
                     qTab === t
                       ? t === 'emergency'
                         ? 'bg-red/10 border-red/20 text-red'
-                        : 'bg-red/10 border-red/20 text-ink'
+                        : 'bg-blue/10 border-blue/20 text-ink'
                       : t === 'emergency'
                         ? 'border-red/15 text-red/70 hover:border-red/30'
                         : 'border-border text-muted hover:text-ink'
@@ -197,7 +197,7 @@ export default function Speak() {
                 className={clsx(
                   'flex-1 py-2 rounded-lg text-xs font-bold border transition-all',
                   speed === s
-                    ? 'bg-red/10 border-red/30 text-red'
+                    ? 'bg-blue/10 border-blue/30 text-blue'
                     : 'bg-card border-border text-muted hover:text-ink'
                 )}
               >
@@ -222,7 +222,7 @@ export default function Speak() {
               <div key={label} className="mb-3 last:mb-0">
                 <div className="text-xs text-muted mb-1.5">{label}</div>
                 <input type="range" min={0} max={100} defaultValue={val}
-                  className="w-full accent-red h-1" />
+                  className="w-full accent-blue h-1" />
               </div>
             ))}
           </SideCard>

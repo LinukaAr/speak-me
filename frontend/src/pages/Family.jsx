@@ -51,7 +51,7 @@ export default function Family() {
                            bg-card border border-border rounded-xl hover:border-border2 transition-colors">
                 <div className={clsx(
                   'w-11 h-11 rounded-full flex items-center justify-center shrink-0',
-                  'font-display font-black text-sm text-white bg-gradient-to-br',
+                  'font-display font-black text-sm text-bg bg-gradient-to-br',
                   m.color
                 )}>
                   {m.avatar}
@@ -88,7 +88,7 @@ export default function Family() {
         <button
           onClick={() => toast('📨 Invite link generated and copied to clipboard!')}
           className="w-full py-4 border-2 border-dashed border-border2 rounded-xl
-                     text-sm text-muted hover:border-red hover:text-red transition-all mb-8"
+                     text-sm text-muted hover:border-blue hover:text-blue transition-all mb-8"
         >
           + Invite a family member, carer or emergency contact
         </button>
