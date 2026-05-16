@@ -7,11 +7,11 @@ import AudioFileList from '@/components/AudioFileList'
 import VoiceCloneProgress from '@/components/VoiceCloneProgress'
 import { cloneVoiceFromFiles, handleApiError } from '@/lib/elevenlabs'
 import { db, storage } from '@/lib/supabase'
-import { Dna, AlertTriangle, Mic, Upload, Volume2 } from 'lucide-react'
+import { Dna, AlertTriangle, Mic, Upload, Volume2, Trash2, CheckCircle, RefreshCw } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function VoiceBankingPage() {
-  const { user, supabaseUserId, setVoiceId, toast } = useApp()
+  const { user, supabaseUserId, voiceId, voiceName, voiceCreatedAt, setVoiceId, clearVoice, toast } = useApp()
   const navigate = useNavigate()
   
   const [audioFiles, setAudioFiles] = useState([])
@@ -21,10 +21,25 @@ export default function VoiceBankingPage() {
   const [clonedVoiceId, setClonedVoiceId] = useState(null)
   const [inputMode, setInputMode] = useState('record') // 'record' | 'upload'
   const [clonedVoiceName, setClonedVoiceName] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [recorderKey,   setRecorderKey]   = useState(0)
 
   // Calculate total duration
   const totalDuration = audioFiles.reduce((sum, file) => sum + file.duration, 0)
   const canClone = totalDuration >= 3
+
+  const formatDate = (ts) => {
+    if (!ts) return 'Unknown'
+    return new Date(ts).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  }
+
+  const handleDeleteVoice = () => {
+    clearVoice()
+    setConfirmDelete(false)
+    setAudioFiles([])
+    setCloneStatus('idle')
+    toast('🗑 Voice clone removed. You can now create a new one.')
+  }
 
   // Handle recording complete
   const handleRecordingComplete = (audioFile) => {
@@ -36,9 +51,13 @@ export default function VoiceBankingPage() {
     setAudioFiles(prev => [...prev, ...newFiles])
   }
 
-  // Handle file deletion
+  // Handle file deletion — also resets the recorder when the last file is removed
   const handleDeleteFile = (fileId) => {
-    setAudioFiles(prev => prev.filter(f => f.id !== fileId))
+    setAudioFiles(prev => {
+      const next = prev.filter(f => f.id !== fileId)
+      if (next.length === 0) setRecorderKey(k => k + 1)
+      return next
+    })
   }
 
   // Handle error
@@ -181,7 +200,7 @@ export default function VoiceBankingPage() {
   }
 
   return (
-    <div className="z-content screen-enter px-4 sm:px-8 py-8 max-w-7xl mx-auto">
+    <div className="z-content screen-enter px-4 sm:px-8 py-8 max-w-3xl mx-auto">
       {/* Header */}
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 text-[10px] font-bold tracking-[2px]
@@ -197,6 +216,83 @@ export default function VoiceBankingPage() {
           that you can use for text-to-speech synthesis.
         </p>
       </div>
+
+      {/* ── ACTIVE CLONE VIEW ── block new cloning until user deletes */}
+      {voiceId && cloneStatus !== 'success' && (
+        <div className="mb-8">
+          {/* Active clone card */}
+          <div className="flex flex-wrap items-center gap-4 bg-green/6 border border-green/20
+                          rounded-xl p-5 mb-4">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-red to-purple
+                            flex items-center justify-center font-display font-black text-xl text-white shrink-0">
+              {user?.initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-display font-bold text-base">{voiceName}</div>
+              <div className="text-xs text-muted mt-0.5">
+                Created {formatDate(voiceCreatedAt)}
+              </div>
+            </div>
+            <span className="flex items-center gap-1.5 bg-green/10 text-green border border-green/20
+                             px-3 py-1.5 rounded-full text-xs font-bold shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-green" />
+              Active
+            </span>
+          </div>
+
+          {/* Info banner */}
+          <div className="flex items-start gap-3 bg-amber/6 border border-amber/20 rounded-xl p-4 mb-4">
+            <AlertTriangle size={16} className="text-amber shrink-0 mt-0.5" />
+            <p className="text-xs text-muted leading-relaxed">
+              You already have an active voice clone. To create a new one, you must delete the
+              current clone first. This cannot be undone — your current voice will stop working
+              in SpeakMe until a new one is cloned.
+            </p>
+          </div>
+
+          {/* Delete controls */}
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => navigate('/speak')}
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue/10 border border-blue/25
+                         text-blue text-sm font-semibold rounded-xl hover:bg-blue/18 transition-colors"
+            >
+              <CheckCircle size={15} /> Use this voice
+            </button>
+
+            {confirmDelete ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-red font-semibold">Delete current voice clone?</span>
+                <button
+                  onClick={handleDeleteVoice}
+                  className="px-4 py-2 bg-red text-white text-xs font-bold rounded-lg
+                             hover:bg-red/80 transition-colors"
+                >
+                  Yes, delete it
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="px-4 py-2 border border-border text-muted text-xs rounded-lg
+                             hover:text-ink hover:border-border2 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-red/8 border border-red/20
+                           text-red text-sm font-semibold rounded-xl hover:bg-red/15 transition-colors"
+              >
+                <Trash2 size={15} /> Delete & re-clone
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── RECORDING UI — only shown when no active voice ── */}
+      {(!voiceId || cloneStatus === 'success') && <>
 
       {/* Input mode toggle */}
       <div className="inline-flex items-center bg-surf border border-border rounded-xl p-1 mb-6">
@@ -228,7 +324,9 @@ export default function VoiceBankingPage() {
       <div className="mb-6">
         {inputMode === 'record' ? (
           <AudioRecorder
+            key={recorderKey}
             onRecordingComplete={handleRecordingComplete}
+            onRetry={() => { setAudioFiles([]); setRecorderKey(k => k + 1) }}
             onError={handleError}
           />
         ) : (
@@ -271,6 +369,8 @@ export default function VoiceBankingPage() {
           />
         </div>
       )}
+
+      </> /* end recording UI */}
 
       {/* Progress Component */}
       <VoiceCloneProgress
