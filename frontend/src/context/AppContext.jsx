@@ -35,7 +35,7 @@ export const FAMILY_MEMBERS = [
 
 export function AppProvider({ children }) {
   const [user,         setUser]         = useState(null)
-  const [session,      setSession]      = useState(null)
+  const [supabaseUserId, setSupabaseUserId] = useState(null) // For Supabase database operations
   const [voiceId,      setVoiceIdState] = useState(null)
   const [voiceName,    setVoiceNameState] = useState('')
   const [voiceCreatedAt, setVoiceCreatedAt] = useState(null)
@@ -51,75 +51,39 @@ export function AppProvider({ children }) {
   const [voiceArch,    setVoiceArch]    = useState({
     totalMinutes: 48, contributors: 6, clips: 23, similarity: 91, status: 'active'
   })
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true)
 
-  // Initialize Supabase auth listener
+  // Load voice data from Supabase or localStorage on mount
   useEffect(() => {
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      if (session?.user) {
-        loadUserData(session.user)
-      }
-      setIsLoadingAuth(false)
-    })
+    loadVoiceData()
+  }, [supabaseUserId])
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      if (session?.user) {
-        loadUserData(session.user)
-      } else {
-        setUser(null)
-        setVoiceIdState(null)
-        setVoiceNameState('')
-        setVoiceCreatedAt(null)
-      }
-    })
+  // Load voice data from Supabase (if user ID available) or localStorage
+  const loadVoiceData = async () => {
+    if (supabaseUserId) {
+      try {
+        // Get active voice clone from Supabase
+        const { voiceClone } = await db.getActiveVoiceClone(supabaseUserId)
+        if (voiceClone) {
+          setVoiceIdState(voiceClone.elevenlabs_voice_id)
+          setVoiceNameState(voiceClone.voice_name)
+          setVoiceCreatedAt(new Date(voiceClone.created_at).getTime())
+        }
 
-    return () => subscription.unsubscribe()
-  }, [])
-
-  // Load user data from Supabase
-  const loadUserData = async (supabaseUser) => {
-    try {
-      // Get profile
-      const { profile } = await db.getProfile(supabaseUser.id)
-      
-      if (profile) {
-        setUser({
-          name: profile.full_name || 'User',
-          email: profile.email,
-          initials: profile.initials || '??',
-        })
-      } else {
-        // Fallback to auth user data
-        setUser({
-          name: supabaseUser.user_metadata?.full_name || 'User',
-          email: supabaseUser.email,
-          initials: getInitials(supabaseUser.user_metadata?.full_name || 'User'),
-        })
+        // Get voice settings from Supabase
+        const { settings } = await db.getVoiceSettings(supabaseUserId)
+        if (settings) {
+          setVoiceSettingsState({
+            stability: settings.stability,
+            similarityBoost: settings.similarity_boost,
+          })
+        }
+      } catch (error) {
+        console.error('Error loading voice data from Supabase:', error)
+        // Fallback to localStorage
+        loadFromLocalStorage()
       }
-
-      // Get active voice clone
-      const { voiceClone } = await db.getActiveVoiceClone(supabaseUser.id)
-      if (voiceClone) {
-        setVoiceIdState(voiceClone.elevenlabs_voice_id)
-        setVoiceNameState(voiceClone.voice_name)
-        setVoiceCreatedAt(new Date(voiceClone.created_at).getTime())
-      }
-
-      // Get voice settings
-      const { settings } = await db.getVoiceSettings(supabaseUser.id)
-      if (settings) {
-        setVoiceSettingsState({
-          stability: settings.stability,
-          similarityBoost: settings.similarity_boost,
-        })
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error)
-      // Fallback to localStorage if Supabase fails
+    } else {
+      // No Supabase user ID, load from localStorage
       loadFromLocalStorage()
     }
   }
@@ -147,13 +111,6 @@ export function AppProvider({ children }) {
     }
   }
 
-  // Load voice data from localStorage on initialization (fallback)
-  useEffect(() => {
-    if (!session) {
-      loadFromLocalStorage()
-    }
-  }, [session])
-
   const setVoiceId = useCallback(async (voiceId, voiceName) => {
     const timestamp = Date.now()
     
@@ -167,11 +124,11 @@ export function AppProvider({ children }) {
     setVoiceNameState(voiceName)
     setVoiceCreatedAt(timestamp)
 
-    // Save to Supabase if authenticated
-    if (session?.user) {
+    // Save to Supabase if user ID available
+    if (supabaseUserId) {
       try {
         await db.createVoiceClone({
-          user_id: session.user.id,
+          user_id: supabaseUserId,
           elevenlabs_voice_id: voiceId,
           voice_name: voiceName,
           is_active: true,
@@ -181,7 +138,7 @@ export function AppProvider({ children }) {
         // Continue anyway - localStorage is the fallback
       }
     }
-  }, [session])
+  }, [supabaseUserId])
 
   const updateVoiceSettings = useCallback(async (settings) => {
     const newSettings = { ...voiceSettings, ...settings }
@@ -195,10 +152,10 @@ export function AppProvider({ children }) {
     // Update state
     setVoiceSettingsState(newSettings)
 
-    // Save to Supabase if authenticated
-    if (session?.user) {
+    // Save to Supabase if user ID available
+    if (supabaseUserId) {
       try {
-        await db.upsertVoiceSettings(session.user.id, {
+        await db.upsertVoiceSettings(supabaseUserId, {
           stability: newSettings.stability,
           similarity_boost: newSettings.similarityBoost,
         })
@@ -207,7 +164,7 @@ export function AppProvider({ children }) {
         // Continue anyway - localStorage is the fallback
       }
     }
-  }, [voiceSettings, session])
+  }, [voiceSettings, supabaseUserId])
 
   const clearVoice = useCallback(() => {
     localStorage.removeItem('silentStage_voiceId')
@@ -224,31 +181,25 @@ export function AppProvider({ children }) {
     setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3200)
   }, [])
 
-  const login = useCallback((email, fullName = 'User') => {
-    setUser({ 
-      name: fullName, 
-      email, 
-      initials: getInitials(fullName) 
-    })
-  }, [])
-
-  const logout = useCallback(async () => {
-    // Sign out from Supabase
-    await supabase.auth.signOut()
+  // Login function - called by Asgardeo after authentication
+  const login = useCallback((email, displayName, asgardeoUserId) => {
+    const name = displayName || email?.split('@')[0] || 'User'
+    const initials = name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2)
     
-    // Clear state
-    setUser(null)
-    setSession(null)
-    clearVoice()
+    setUser({ name, email, initials })
+    
+    // Set Supabase user ID for database operations
+    // Use Asgardeo user ID as the Supabase user ID
+    if (asgardeoUserId) {
+      setSupabaseUserId(asgardeoUserId)
+    }
   }, [])
 
-  // Helper function to get initials
-  const getInitials = (name) => {
-    if (!name) return '??'
-    const parts = name.trim().split(' ')
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-  }
+  const logout = useCallback(() => {
+    setUser(null)
+    setSupabaseUserId(null)
+    clearVoice()
+  }, [clearVoice])
 
   const simulateSpeak = useCallback((text) => {
     if (!text.trim()) return
@@ -263,7 +214,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
-      user, login, logout, session, isLoadingAuth,
+      user, login, logout, supabaseUserId,
       voiceId, voiceName, voiceCreatedAt, voiceSettings,
       setVoiceId, updateVoiceSettings, clearVoice,
       speaking, lastSpoken, simulateSpeak,
