@@ -13,7 +13,7 @@ const headers = () => ({
 export async function cloneVoice(name, audioBlobs) {
   const form = new FormData()
   form.append('name', name)
-  form.append('description', 'SilentStage voice banking')
+  form.append('description', 'SpeakMe voice banking')
   audioBlobs.forEach((blob, i) => form.append('files', blob, `recording_${i}.mp3`))
 
   const res = await fetch(`${BASE_URL}/voices/add`, {

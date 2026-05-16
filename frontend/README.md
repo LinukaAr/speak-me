@@ -1,4 +1,4 @@
-# 🎙 SilentStage — Give People Back Their Voice
+# 🎙 SpeakMe — Give People Back Their Voice
 
 **Cursor Colombo Buildathon 2026 · Audio & Voice AI Track by ElevenLabs**
 
@@ -6,7 +6,7 @@
 
 ## What Is This
 
-SilentStage is a real-time voice restoration platform for people living with ALS, throat cancer, laryngectomy, or any condition causing progressive or sudden voice loss.
+SpeakMe is a real-time voice restoration platform for people living with ALS, throat cancer, laryngectomy, or any condition causing progressive or sudden voice loss.
 
 Built in 24 hours. Powered by ElevenLabs voice cloning.
 

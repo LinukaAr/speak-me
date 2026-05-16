@@ -44,7 +44,7 @@ export default function Layout() {
           }}>
             🎙
           </div>
-          Silent<span style={{ color: 'var(--red)' }}>Stage</span>
+          Speak<span style={{ color: 'var(--red)' }}>Me</span>
         </div>
 
         {/* Nav tabs */}
