@@ -52,10 +52,8 @@ export default function PhraseCard({ phrase }) {
 
   const handleDelete = async (e) => {
     e.stopPropagation()
-    if (window.confirm(`Delete "${phrase.text}"?`)) {
-      await deletePhrase(phrase.id)
-      toast('🗑️ Phrase deleted', 'default')
-    }
+    await deletePhrase(phrase.id)
+    toast('🗑️ Phrase deleted', 'default')
   }
 
   return (
