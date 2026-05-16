@@ -13,6 +13,7 @@ import Family from '@/pages/Family'
 import SignLanguage from '@/pages/SignLanguage'
 import Settings from '@/pages/Settings'
 import VoiceBankingPage from '@/pages/VoiceBankingPage'
+import About from '@/pages/About'
 
 function SignoutPage() {
   const navigate = useNavigate()
@@ -42,6 +43,7 @@ function AppRoutes() {
         <Route path="/family"        element={<ProtectedRoute><Family /></ProtectedRoute>} />
         <Route path="/sign"          element={<ProtectedRoute><SignLanguage /></ProtectedRoute>} />
         <Route path="/settings"      element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/about"         element={<About />} />
         <Route path="*"              element={<Navigate to="/" replace />} />
       </Routes>
     </>
