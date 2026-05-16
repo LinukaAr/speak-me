@@ -392,18 +392,6 @@ export default function Settings() {
                 Manage <ExternalLink size={11} />
               </a>
             </SettingRow>
-
-            {/* Sign out */}
-            <div className="pt-5 border-t border-border mt-2">
-              <button
-                onClick={() => { logout(); signOut() }}
-                className="flex items-center gap-2 px-5 py-2.5 bg-red/10 border border-red/25 text-red text-sm font-bold
-                           rounded-xl hover:bg-red/18 transition-colors"
-              >
-                <LogOut size={15} />
-                Sign Out
-              </button>
-            </div>
           </div>
         )}
       </div>
