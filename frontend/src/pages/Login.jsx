@@ -1,13 +1,24 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthContext } from '@asgardeo/auth-react'
 import { useApp } from '@/context/AppContext'
 
 export default function Login() {
-  const { state, signIn, getBasicUserInfo } = useAuthContext()
+  const { state, signIn, trySignInSilently, getBasicUserInfo } = useAuthContext()
   const { login, toast } = useApp()
   const navigate = useNavigate()
+  const [triedSilent, setTriedSilent] = useState(false)
 
+  // Attempt silent re-auth on first load — restores session without user interaction
+  useEffect(() => {
+    if (state.isAuthenticated || state.isLoading || triedSilent) return
+    setTriedSilent(true)
+    trySignInSilently().catch(() => {
+      // Silent sign-in failed (no existing session) — show the Sign In button normally
+    })
+  }, [state.isLoading])
+
+  // Once authenticated (either from silent or manual), fetch user info and redirect
   useEffect(() => {
     if (!state.isAuthenticated) return
 
@@ -22,7 +33,6 @@ export default function Login() {
         navigate('/speak')
       })
       .catch(() => {
-        // Fallback: use whatever is on state
         const email = state.username || ''
         login(email, email.split('@')[0], email)
         toast('✓ Signed in.')
@@ -40,7 +50,6 @@ export default function Login() {
                         px-3 py-1.5 rounded-full text-[11px] font-bold tracking-widest
                         uppercase text-blue mb-8 w-fit">
           <span className="w-1.5 h-1.5 rounded-full bg-blue animate-[pulse-dot_2s_ease_infinite]" />
-          Voice Restoration Platform
         </div>
 
         <h1 className="font-display font-black text-6xl leading-[0.9] tracking-[-3px] mb-5">
@@ -50,29 +59,11 @@ export default function Login() {
 
         <p className="text-muted text-[15px] leading-relaxed max-w-sm mb-10">
           Bank your voice before it changes. Recover it from old recordings
-          if it's already gone. Speak in real time in your own voice — forever.
+          if it's already gone. Speak in real time in your own voice forever.
         </p>
 
-        <div className="flex flex-col gap-3">
-          {[
-            ['🎙', 'Voice cloning via ElevenLabs — 10 min to bank'],
-            ['🔍', 'Voice Archaeology™ — recover from old recordings'],
-            ['👨‍👩‍👧', 'Family access with emergency SOS protocols'],
-            ['🌍', 'Multilingual — Sinhala, Tamil, Hindi + 70 more (future)'],
-            ['🤟', 'Sign language camera input — planned post-hackathon'],
-          ].map(([icon, text]) => (
-            <div key={text} className="flex items-center gap-3 text-sm text-muted">
-              <div className="w-8 h-8 rounded-lg bg-blue/10 border border-blue/15
-                              flex items-center justify-center text-base shrink-0">
-                {icon}
-              </div>
-              {text}
-            </div>
-          ))}
-        </div>
-
         <div className="flex gap-8 mt-12 pt-8 border-t border-border">
-          {[['376K+','ALS patients by 2040'],['< 2s','Synthesis latency'],['91%','Voice similarity']].map(([n,l]) => (
+          {[['< 2s','Speech synthesis latency'],['10 min','To bank your voice'],['Free','During beta']].map(([n,l]) => (
             <div key={l}>
               <div className="font-display font-black text-2xl text-ink">{n}</div>
               <div className="text-[11px] text-muted mt-0.5">{l}</div>
@@ -91,30 +82,29 @@ export default function Login() {
           </div>
 
           <h2 className="font-display font-black text-3xl tracking-tight mb-1.5">
-            Welcome back
+            Reclaim your voice!
           </h2>
           <p className="text-muted text-sm mb-8">
             Sign in to your SpeakMe account
           </p>
 
-          <button
-            onClick={() => signIn()}
-            disabled={state.isLoading}
-            className="w-full py-3.5 bg-blue text-bg rounded-xl
-                       font-semibold text-sm tracking-wide
-                       hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue/25
-                       disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none
-                       transition-all active:scale-[.98] flex items-center justify-center gap-2"
-          >
-            {state.isLoading ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Signing in…
-              </>
-            ) : (
-              'Sign In →'
-            )}
-          </button>
+          {/* While loading or attempting silent sign-in, show a spinner instead of the button */}
+          {(state.isLoading || !triedSilent) ? (
+            <div className="w-full py-3.5 flex items-center justify-center gap-2 text-sm text-muted">
+              <span className="w-4 h-4 border-2 border-muted/30 border-t-muted rounded-full animate-spin" />
+              Checking session…
+            </div>
+          ) : (
+            <button
+              onClick={() => signIn()}
+              className="w-full py-3.5 bg-blue text-bg rounded-xl
+                         font-semibold text-sm tracking-wide
+                         hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue/25
+                         transition-all active:scale-[.98] flex items-center justify-center gap-2"
+            >
+              Try SpeakMe !
+            </button>
+          )}
 
           <p className="text-center text-xs text-muted mt-8">
           </p>

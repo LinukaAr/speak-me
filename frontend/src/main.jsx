@@ -11,6 +11,7 @@ const asgardeoConfig = {
   signInRedirectURL: import.meta.env.VITE_ASGARDEO_SIGN_IN_REDIRECT_URL,
   signOutRedirectURL: import.meta.env.VITE_ASGARDEO_SIGN_OUT_REDIRECT_URL,
   scope: ['openid', 'profile', 'email'],
+  storage: 'localStorage',
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
