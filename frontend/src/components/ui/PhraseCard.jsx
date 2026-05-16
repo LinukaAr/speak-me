@@ -96,7 +96,7 @@ export default function PhraseCard({ phrase }) {
         'absolute top-0 left-0 right-0 h-[2px] rounded-t-xl opacity-0 group-hover:opacity-100 transition-opacity',
         phrase.urgent
           ? 'bg-gradient-to-r from-transparent via-red to-transparent'
-          : 'bg-gradient-to-r from-transparent via-red to-transparent',
+          : 'bg-gradient-to-r from-transparent via-blue to-transparent',
       )} />
 
       <span className="text-2xl mb-2 block">{phrase.icon}</span>
@@ -114,7 +114,7 @@ export default function PhraseCard({ phrase }) {
               <div
                 key={i}
                 className="wave-bar"
-                style={{ '--wc': phrase.urgent ? '#e8365d' : '#10d98a', animationDelay: `${i * 0.08}s` }}
+                style={{ '--wc': phrase.urgent ? '#ff4d6d' : '#00b8ff', animationDelay: `${i * 0.08}s` }}
               />
             ))}
           </div>

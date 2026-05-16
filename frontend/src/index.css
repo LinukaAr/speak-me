@@ -5,18 +5,18 @@
 @layer base {
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{background:#07070f;color:#f0eff6;font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 70% 50% at 10% 15%,rgba(232,54,93,.07) 0%,transparent 60%),radial-gradient(ellipse 60% 60% at 90% 85%,rgba(139,92,246,.05) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 50% 50%,rgba(16,217,138,.03) 0%,transparent 70%)}
+  body{background:#001f2b;color:#e8f6ff;font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 70% 50% at 10% 15%,rgba(0,184,255,.07) 0%,transparent 60%),radial-gradient(ellipse 60% 60% at 90% 85%,rgba(0,113,156,.06) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 50% 50%,rgba(0,155,214,.04) 0%,transparent 70%)}
   textarea{resize:none;outline:none}
   ::-webkit-scrollbar{width:5px;height:5px}
   ::-webkit-scrollbar-track{background:transparent}
-  ::-webkit-scrollbar-thumb{background:#2a2a42;border-radius:3px}
-  ::selection{background:rgba(232,54,93,.25);color:#f0eff6}
+  ::-webkit-scrollbar-thumb{background:#00415a;border-radius:3px}
+  ::selection{background:rgba(0,184,255,.25);color:#e8f6ff}
 }
 
 @layer components {
   .z-content{position:relative;z-index:1}
-  .wave-bar{width:3px;border-radius:2px;background:var(--wc,#e8365d);animation:wave 1.2s ease infinite}
+  .wave-bar{width:3px;border-radius:2px;background:var(--wc,#00b8ff);animation:wave 1.2s ease infinite}
   .wave-bar:nth-child(1){height:18px;animation-delay:.00s}
   .wave-bar:nth-child(2){height:30px;animation-delay:.08s}
   .wave-bar:nth-child(3){height:46px;animation-delay:.16s}
@@ -36,7 +36,7 @@
   .wave-bar:nth-child(17){height:54px;animation-delay:.07s}
   .wave-bar:nth-child(18){height:34px;animation-delay:.19s}
   .screen-enter{animation:fade-up .35s ease both}
-  .glass{background:rgba(17,17,32,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.06)}
+  .glass{background:rgba(0,50,74,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(0,184,255,.08)}
 }
 
 @keyframes wave{0%,100%{transform:scaleY(.3);opacity:.6}50%{transform:scaleY(1);opacity:1}}

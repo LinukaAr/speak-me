@@ -1,4 +1,4 @@
-# 🎙 SilentStage — Give People Back Their Voice
+# 🎙 SpeakMe — Reclaim your voice
 
 **Cursor Colombo Buildathon 2026 · Audio & Voice AI Track by ElevenLabs**
 
@@ -6,7 +6,7 @@
 
 ## What Is This
 
-SilentStage is a real-time voice restoration platform for people living with ALS, throat cancer, laryngectomy, or any condition causing progressive or sudden voice loss.
+SpeakMe is a real-time voice restoration platform for people living with ALS, throat cancer, laryngectomy, or any condition causing progressive or sudden voice loss.
 
 Built in 24 hours. Powered by ElevenLabs voice cloning.
 
@@ -37,34 +37,6 @@ Opens at http://localhost:5173
 ```bash
 npm run build
 ```
-
----
-
-## Project Structure
-
-```
-src/
-├── App.jsx              # Root component, routing, global context
-├── main.jsx             # Entry point
-├── index.css            # Global styles + design tokens
-├── components/
-│   ├── Layout.jsx       # Navigation wrapper
-│   └── UI.jsx           # Reusable components (Btn, Card, Waveform, etc.)
-├── pages/
-│   ├── LoginPage.jsx    # Auth: email, Google, Apple SSO
-│   ├── SpeakPage.jsx    # Main speaking interface + quick phrases
-│   ├── PhrasesPage.jsx  # Full quick phrases management
-│   ├── VoiceBankingPage.jsx  # Record sentences, clone voice
-│   ├── ArchaeologyPage.jsx   # Voice Archaeology™ — recover from old audio
-│   ├── FamilyPage.jsx   # Family access management + emergency settings
-│   ├── SignLanguagePage.jsx  # Future plan mockup
-│   ├── SettingsPage.jsx # Voice settings, language, privacy
-│   └── OtherPages.jsx   # Family, Sign, Settings implementations
-└── lib/
-    ├── data.js          # All mock data (phrases, languages, family members)
-    └── elevenlabs.js    # ElevenLabs API integration helpers
-```
-
 ---
 
 ## ElevenLabs API Used
@@ -166,7 +138,6 @@ The app runs in **demo mode** without a real ElevenLabs API key — it uses the 
 ## Tech Stack
 
 - React 18 + Vite 5
-- React Router v6
 - ElevenLabs API (voice cloning + TTS)
 - Supabase (auth + database)
 - Netlify (deployment)

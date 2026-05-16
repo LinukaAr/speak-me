@@ -35,7 +35,7 @@ export default function ArchaeologyPage() {
         <Eyebrow color="var(--amber)">Voice Archaeology™</Eyebrow>
         <h2 style={{ fontSize: 42, marginBottom: 12 }}>Already lost<br />your voice?<br /><span style={{ color: 'var(--red)' }}>We'll find it.</span></h2>
         <p style={{ color: 'var(--text-2)', fontSize: 15, maxWidth: 520, marginBottom: 36, lineHeight: 1.65 }}>
-          Your voice exists in old videos, voicemails, and WhatsApp messages. SilentStage recovers it — even from just 3 seconds of audio.
+          Your voice exists in old videos, voicemails, and WhatsApp messages. SpeakMe recovers it — even from just 3 seconds of audio.
         </p>
 
         {/* Summary (if already done) */}

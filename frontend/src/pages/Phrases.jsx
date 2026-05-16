@@ -28,8 +28,8 @@ export default function Phrases() {
         <button
           onClick={() => toast('✚ Add phrase feature — connect Supabase to persist!')}
           className="flex items-center gap-2 px-5 py-2.5
-                     bg-red/10 border border-red/25 text-red text-sm font-semibold
-                     rounded-xl hover:bg-red/18 transition-colors"
+                     bg-blue/10 border border-blue/25 text-blue text-sm font-semibold
+                     rounded-xl hover:bg-blue/18 transition-colors"
         >
           + Add Phrase
         </button>
@@ -59,14 +59,14 @@ export default function Phrases() {
               className={clsx(
                 'px-4 py-2 text-sm font-medium rounded-t-lg capitalize transition-all relative',
                 tab === t
-                  ? 'text-ink after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-red'
+                  ? 'text-ink after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-blue'
                   : 'text-muted hover:text-ink'
               )}
             >
               {t}{' '}
               <span className={clsx(
                 'text-[10px] w-4 h-4 rounded-full inline-flex items-center justify-center ml-1',
-                tab === t ? 'bg-red text-white' : 'bg-subtle text-muted'
+                tab === t ? 'bg-blue text-bg' : 'bg-subtle text-muted'
               )}>
                 {count}
               </span>

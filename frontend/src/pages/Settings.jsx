@@ -48,8 +48,8 @@ export default function Settings() {
               className={clsx(
                 'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all text-left',
                 section === n
-                  ? 'bg-red/8 text-ink border border-red/15'
-                  : 'text-muted hover:bg-white/4 hover:text-ink border border-transparent'
+                  ? 'bg-blue/8 text-ink border border-blue/20'
+                  : 'text-muted hover:bg-blue/5 hover:text-ink border border-transparent'
               )}
             >
               {{'Voice Clone':'🎙','Language':'🌍','Privacy':'🔒','Emergency':'🚨','Accessibility':'♿','Account':'👤'}[n]}
@@ -160,7 +160,7 @@ export default function Settings() {
                     className={clsx(
                       'p-4 rounded-xl border text-center transition-all',
                       selLang === l.name
-                        ? 'border-purple/50 bg-purple/10'
+                        ? 'border-blue/50 bg-blue/10'
                         : disabled
                           ? 'border-border bg-card opacity-50 cursor-not-allowed'
                           : 'border-border bg-card hover:border-border2'
@@ -188,7 +188,7 @@ export default function Settings() {
             <SectionTitle>🔒 Privacy & Data</SectionTitle>
             {[
               { key:'history',   title:'Store speech history',      desc:'Save all spoken phrases for replay and history review' },
-              { key:'analytics', title:'Share usage analytics',     desc:'Help improve SilentStage with anonymised usage data'   },
+              { key:'analytics', title:'Share usage analytics',     desc:'Help improve SpeakMe with anonymised usage data'   },
             ].map(({ key, title, desc }) => (
               <SettingRow key={key} title={title} desc={desc}>
                 <Toggle on={privToggles[key]} onToggle={() => tog(privToggles, setPrivToggles, key)} />
@@ -215,7 +215,7 @@ export default function Settings() {
             <SectionTitle>🚨 Emergency Settings</SectionTitle>
             {[
               { key:'location',   title:'Send location with alert',   desc:'Emergency contacts receive your GPS location when alert fires' },
-              { key:'inactivity', title:'Alert on 4+ hours inactivity',desc:"Notify Primary Carer if you haven't used SilentStage in 4 hours" },
+              { key:'inactivity', title:'Alert on 4+ hours inactivity',desc:"Notify Primary Carer if you haven't used SpeakMe in 4 hours" },
             ].map(({ key, title, desc }) => (
               <SettingRow key={key} title={title} desc={desc}>
                 <Toggle on={emToggles[key]} onToggle={() => tog(emToggles, setEmToggles, key)} />
@@ -234,7 +234,7 @@ export default function Settings() {
         {section === 'Accessibility' && (
           <div>
             <SectionTitle>♿ Accessibility</SectionTitle>
-            <p className="text-sm text-muted mb-5">Customise SilentStage for your specific needs and abilities.</p>
+            <p className="text-sm text-muted mb-5">Customise SpeakMe for your specific needs and abilities.</p>
             {[['Larger text mode','Increase all font sizes for easier reading'],
               ['High contrast mode','Increase colour contrast for visual accessibility'],
               ['Reduce motion','Disable animations and transitions'],
@@ -251,8 +251,8 @@ export default function Settings() {
           <div>
             <SectionTitle>👤 Account</SectionTitle>
             <div className="flex items-center gap-4 bg-card border border-border rounded-xl p-5 mb-5">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-red to-purple
-                              flex items-center justify-center font-display font-black text-xl text-white">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue to-blue3
+                              flex items-center justify-center font-display font-black text-xl text-bg">
                 {user?.initials}
               </div>
               <div>
@@ -260,7 +260,7 @@ export default function Settings() {
                 <div className="text-xs text-muted">{user?.email}</div>
               </div>
             </div>
-            {[['Change display name','Edit how your name appears across SilentStage'],
+            {[['Change display name','Edit how your name appears across SpeakMe'],
               ['Change email address','Update the email used for login and alerts'],
               ['Change password','Update your account password'],
             ].map(([t,d]) => (

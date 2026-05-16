@@ -26,8 +26,8 @@ export default function Navbar() {
           onClick={() => navigate('/speak')}
           className="flex items-center gap-2.5 font-display font-black text-lg tracking-tight shrink-0"
         >
-          <div className="w-8 h-8 rounded-lg bg-red flex items-center justify-center text-sm">🎙</div>
-          <span>Silent<span className="text-red">Stage</span></span>
+          <div className="w-8 h-8 rounded-lg bg-blue flex items-center justify-center text-sm">🎙</div>
+          <span>Speak<span className="text-blue">Me</span></span>
         </button>
 
         {/* Nav tabs */}
@@ -39,8 +39,8 @@ export default function Navbar() {
               className={({ isActive }) => clsx(
                 'px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap',
                 isActive
-                  ? 'bg-red/10 text-ink border border-red/20'
-                  : 'text-muted hover:text-ink hover:bg-white/5 border border-transparent'
+                  ? 'bg-blue/10 text-ink border border-blue/25'
+                  : 'text-muted hover:text-ink hover:bg-blue/5 border border-transparent'
               )}
             >
               {label}
@@ -60,7 +60,7 @@ export default function Navbar() {
           )}
           <button
             onClick={() => navigate('/settings')}
-            className="w-8 h-8 rounded-full bg-gradient-to-br from-red to-purple
+            className="w-8 h-8 rounded-full bg-gradient-to-br from-blue to-blue3
                        flex items-center justify-center
                        font-display font-black text-xs text-white
                        hover:scale-105 transition-transform"

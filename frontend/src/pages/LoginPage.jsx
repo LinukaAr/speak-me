@@ -113,7 +113,7 @@ export default function LoginPage() {
           {isRegister ? 'Create account' : 'Welcome back'}
         </h2>
         <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 32 }}>
-          {isRegister ? 'Start restoring your voice today' : 'Sign in to your SilentStage account'}
+          {isRegister ? 'Start restoring your voice today' : 'Sign in to your SpeakMe account'}
         </p>
 
         <Input label="Email address" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />

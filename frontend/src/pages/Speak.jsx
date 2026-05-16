@@ -191,7 +191,7 @@ export default function Speak() {
                 className={clsx(
                   'px-3 py-1 rounded-full text-xs font-medium border transition-all',
                   outputLang === l.label
-                    ? 'bg-purple/12 border-purple/35 text-purple'
+                    ? 'bg-blue/12 border-blue/35 text-blue'
                     : l.live
                       ? 'border-border text-muted hover:text-ink hover:border-border2'
                       : 'border-border text-subtle opacity-50 cursor-not-allowed'
@@ -213,7 +213,7 @@ export default function Speak() {
               rows={5}
               className="w-full bg-card border-[1.5px] border-border rounded-2xl
                          px-5 pt-5 pb-16 text-ink text-[15px] leading-relaxed
-                         placeholder:text-subtle focus:border-red/40 transition-colors
+                         placeholder:text-subtle focus:border-blue/40 transition-colors
                          font-body"
             />
             {/* Toolbar inside textarea */}
@@ -265,7 +265,7 @@ export default function Speak() {
             <Waveform bars={18} active={speaking} className="mb-3" />
             {lastSpoken && (
               <div className="mt-3 px-4 py-3 bg-surf rounded-xl
-                              text-sm text-muted italic border-l-2 border-red">
+                              text-sm text-muted italic border-l-2 border-blue3">
                 "{lastSpoken.slice(0, 90)}{lastSpoken.length > 90 ? '…' : ''}"
               </div>
             )}
@@ -289,7 +289,7 @@ export default function Speak() {
                     qTab === t
                       ? t === 'emergency'
                         ? 'bg-red/10 border-red/20 text-red'
-                        : 'bg-red/10 border-red/20 text-ink'
+                        : 'bg-blue/10 border-blue/20 text-ink'
                       : t === 'emergency'
                         ? 'border-red/15 text-red/70 hover:border-red/30'
                         : 'border-border text-muted hover:text-ink'
@@ -317,7 +317,7 @@ export default function Speak() {
                 className={clsx(
                   'flex-1 py-2 rounded-lg text-xs font-bold border transition-all',
                   speed === s
-                    ? 'bg-red/10 border-red/30 text-red'
+                    ? 'bg-blue/10 border-blue/30 text-blue'
                     : 'bg-card border-border text-muted hover:text-ink'
                 )}
               >

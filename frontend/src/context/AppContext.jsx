@@ -27,10 +27,10 @@ export const PHRASES = [
 ]
 
 export const FAMILY_MEMBERS = [
-  { id: 1, name: 'Sarah Kumar',     relation: 'Daughter',          role: 'carer',     avatar: 'SK', color: 'from-red   to-red2',   online: true,  email: 'sarah@email.com'   },
-  { id: 2, name: 'Michael Kumar',   relation: 'Son',               role: 'family',    avatar: 'MK', color: 'from-blue  to-blue',   online: true,  email: 'michael@email.com' },
+  { id: 1, name: 'Sarah Kumar',     relation: 'Daughter',          role: 'carer',     avatar: 'SK', color: 'from-blue  to-blue2',  online: true,  email: 'sarah@email.com'   },
+  { id: 2, name: 'Michael Kumar',   relation: 'Son',               role: 'family',    avatar: 'MK', color: 'from-blue3 to-blue4',  online: true,  email: 'michael@email.com' },
   { id: 3, name: 'Dr. Priya Mendis',relation: 'Physician',         role: 'emergency', avatar: 'PM', color: 'from-red   to-red2',   online: false, email: 'priya@hospital.lk' },
-  { id: 4, name: 'Rachel Perera',   relation: 'Friend',            role: 'invited',   avatar: 'RP', color: 'from-amber to-amber',  online: false, email: 'rachel@email.com'  },
+  { id: 4, name: 'Rachel Perera',   relation: 'Friend',            role: 'invited',   avatar: 'RP', color: 'from-blue2 to-blue3',  online: false, email: 'rachel@email.com'  },
 ]
 
 export function AppProvider({ children }) {
