@@ -1,12 +1,16 @@
 import { useState, useRef } from 'react'
 import { useApp } from '@/context/AppContext'
 import { synthesise, handleApiError } from '@/lib/elevenlabs'
+import { Trash2 } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function PhraseCard({ phrase }) {
-  const { voiceId, voiceSettings, simulateSpeak, incrementPhrase, toast } = useApp()
+  const { voiceId, voiceSettings, simulateSpeak, incrementPhrase, toast, deletePhrase } = useApp()
   const [playing, setPlaying] = useState(false)
+  const [showDelete, setShowDelete] = useState(false)
   const audioRef = useRef(null)
+
+  const isCustomPhrase = phrase.id > 20 // User-added phrases have ID > 20
 
   const play = async () => {
     if (playing) return
@@ -46,9 +50,19 @@ export default function PhraseCard({ phrase }) {
     }
   }
 
+  const handleDelete = async (e) => {
+    e.stopPropagation()
+    if (window.confirm(`Delete "${phrase.text}"?`)) {
+      await deletePhrase(phrase.id)
+      toast('🗑️ Phrase deleted', 'default')
+    }
+  }
+
   return (
     <button
       onClick={play}
+      onMouseEnter={() => setShowDelete(true)}
+      onMouseLeave={() => setShowDelete(false)}
       disabled={playing}
       className={clsx(
         'relative group text-left w-full rounded-xl p-4 border transition-all duration-200',
@@ -67,6 +81,19 @@ export default function PhraseCard({ phrase }) {
           ? 'bg-gradient-to-r from-transparent via-red to-transparent'
           : 'bg-gradient-to-r from-transparent via-blue to-transparent',
       )} />
+
+      {/* Delete button for custom phrases */}
+      {isCustomPhrase && showDelete && !playing && (
+        <button
+          onClick={handleDelete}
+          className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-red/90 hover:bg-red
+                     flex items-center justify-center text-white transition-all
+                     hover:scale-110 z-10"
+          title="Delete phrase"
+        >
+          <Trash2 size={13} />
+        </button>
+      )}
 
       <span className="text-2xl mb-2 block">{phrase.icon}</span>
       <p className="text-sm font-medium text-ink leading-snug mb-2">{phrase.text}</p>

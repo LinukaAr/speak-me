@@ -16,7 +16,7 @@ const CATEGORIES = [
 const EMOJI_OPTIONS = ['💬', '💭', '🗣️', '💡', '⭐', '❤️', '👋', '🙏', '✨', '🎯', '📝', '💪', '🌟', '🎉', '👍', '🤝', '💯', '🔔']
 
 export default function Phrases() {
-  const { phrases, toast } = useApp()
+  const { phrases, toast, addPhrase, voiceId } = useApp()
   const [tab, setTab] = useState('all')
   const [showAddModal, setShowAddModal] = useState(false)
   const [newPhrase, setNewPhrase] = useState({
@@ -32,23 +32,29 @@ export default function Phrases() {
     .filter(p => tab === 'all' ? true : p.cat === tab)
     .sort((a, b) => b.uses - a.uses)
 
-  const handleAddPhrase = () => {
+  const handleAddPhrase = async () => {
     if (!newPhrase.text.trim()) {
       toast('⚠️ Please enter a phrase text', 'warning')
       return
     }
 
-    // In a real implementation, this would save to Supabase
-    toast('✓ Phrase added successfully! (Connect Supabase to persist)', 'success')
-    
-    // Reset form and close modal
-    setNewPhrase({
-      text: '',
-      icon: '💬',
-      cat: 'daily',
-      urgent: false,
-    })
-    setShowAddModal(false)
+    try {
+      // Add phrase to state (and Supabase if connected)
+      await addPhrase(newPhrase)
+      
+      toast('✓ Phrase added successfully! Tap it to speak in your voice.', 'success')
+      
+      // Reset form and close modal
+      setNewPhrase({
+        text: '',
+        icon: '💬',
+        cat: 'daily',
+        urgent: false,
+      })
+      setShowAddModal(false)
+    } catch (error) {
+      toast('❌ Failed to add phrase. Please try again.', 'error')
+    }
   }
 
   return (
@@ -133,6 +139,16 @@ export default function Phrases() {
               >
                 <X size={18} />
               </button>
+            </div>
+
+            {/* Info Banner */}
+            <div className="bg-blue/8 border border-blue/20 rounded-xl p-3 mb-4 flex gap-3">
+              <span className="text-lg shrink-0">🎙️</span>
+              <div className="text-xs text-muted leading-relaxed">
+                <strong className="text-ink block mb-1" style={{ color: '#00b8ff' }}>Voice Automatically Attached</strong>
+                Your phrase will speak in {voiceId ? 'your cloned voice' : 'the demo voice'}. 
+                {!voiceId && ' Clone your voice in Voice Banking to personalize all phrases.'}
+              </div>
             </div>
 
             <div className="space-y-4">

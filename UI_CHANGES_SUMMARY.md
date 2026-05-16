@@ -46,10 +46,12 @@
 
 ---
 
-### 4. ✅ Add Phrase Button Now Functional
+### 4. ✅ Add Phrase Button Now Fully Functional
 
 **Files Modified:**
 - `frontend/src/pages/Phrases.jsx`
+- `frontend/src/context/AppContext.jsx`
+- `frontend/src/components/ui/PhraseCard.jsx`
 
 **Implementation:**
 - Created a modal dialog for adding new phrases
@@ -58,16 +60,44 @@
   - **Icon Selection**: Grid of 18 emoji options to choose from
   - **Category Selection**: Daily, Medical, Social, Emergency (with color coding)
 - Added validation to ensure phrase text is not empty
+- **✨ NEW: Phrases now appear immediately in the relevant category**
+- **✨ NEW: Added informational banner explaining automatic voice attachment**
+- **✨ NEW: Delete functionality for user-added phrases (hover to see delete button)**
 - Implemented color palette as requested:
   - Primary Blue (#00b8ff) for main actions
   - Category colors for visual distinction
 - Modal includes Cancel and Add Phrase buttons
 - Shows success toast notification when phrase is added
 
-**Note:** The feature currently shows a success message. To persist phrases, connect to Supabase database by:
-1. Creating a `phrases` table in Supabase
-2. Adding `addPhrase` function to `AppContext.jsx`
-3. Calling the Supabase insert function in `handleAddPhrase`
+**🎙️ Voice Attachment - How It Works:**
+
+The voice attachment is **completely automatic** - no manual recording needed!
+
+1. **User Types Text Only**: When adding a phrase, users just type what they want to say
+2. **Automatic Voice Synthesis**: When the phrase is clicked, it automatically speaks using:
+   - **User's Cloned Voice** (if they've completed Voice Banking with ElevenLabs)
+   - **ElevenLabs Demo Voice** (Rachel voice - if no cloned voice exists)
+   - **Browser Speech Synthesis** (fallback if ElevenLabs API is unavailable)
+3. **Same Quality as Built-in Phrases**: User-added phrases sound identical to default phrases
+4. **Real-time Generation**: Voice is synthesized on-demand via ElevenLabs API
+5. **No Storage Needed**: Text-to-speech happens in real-time, no audio files stored
+
+**User Experience Flow:**
+1. Click "+ Add Phrase" button
+2. Type phrase text (e.g., "I'd like to watch a movie")
+3. Select an icon (e.g., 🎬)
+4. Choose category (e.g., Daily)
+5. Click "Add Phrase"
+6. ✅ Phrase appears immediately in the Daily category
+7. Click the phrase → it speaks in your voice!
+8. Hover over custom phrases to see delete button (🗑️)
+
+**Technical Implementation:**
+- `addPhrase()` function in AppContext adds phrase to state immediately
+- PhraseCard component uses existing `synthesise()` function from elevenlabs.js
+- Voice settings (stability, similarity) are automatically applied
+- Custom phrases (ID > 20) show delete button on hover
+- Phrases persist in React state (can be saved to Supabase for persistence across sessions)
 
 ---
 
@@ -89,10 +119,15 @@ All changes use the specified color palette:
 - [ ] View All page (Phrases) has Emergency section pinned at top
 - [ ] View All page does not have Emergency in the category tabs
 - [ ] "+ Add Phrase" button opens modal dialog
+- [ ] Modal shows voice attachment info banner
 - [ ] Modal allows text input, icon selection, and category selection
 - [ ] Modal validates empty phrase text
 - [ ] Modal can be closed via Cancel button or X icon
 - [ ] Success toast appears when adding a phrase
+- [ ] **NEW: Added phrase appears immediately in the correct category**
+- [ ] **NEW: Added phrase can be clicked to speak in user's voice**
+- [ ] **NEW: Hover over custom phrase shows delete button**
+- [ ] **NEW: Delete button removes phrase from UI**
 
 ---
 

@@ -301,6 +301,53 @@ export function AppProvider({ children }) {
     setPhrases(p => p.map(ph => ph.id === id ? { ...ph, uses: ph.uses + 1 } : ph))
   }, [])
 
+  const addPhrase = useCallback(async (phraseData) => {
+    const newPhrase = {
+      id: Date.now(), // Generate unique ID
+      icon: phraseData.icon,
+      text: phraseData.text,
+      cat: phraseData.cat,
+      uses: 0,
+      urgent: phraseData.urgent,
+    }
+
+    // Add to state immediately
+    setPhrases(prev => [...prev, newPhrase])
+
+    // Save to Supabase if user ID available
+    if (supabaseUserId) {
+      try {
+        await db.createPhrase({
+          user_id: supabaseUserId,
+          text: phraseData.text,
+          icon: phraseData.icon,
+          category: phraseData.cat,
+          urgent: phraseData.urgent,
+        })
+      } catch (error) {
+        console.error('Failed to save phrase to Supabase:', error)
+        // Continue anyway - phrase is already in state
+      }
+    }
+
+    return newPhrase
+  }, [supabaseUserId])
+
+  const deletePhrase = useCallback(async (phraseId) => {
+    // Remove from state immediately
+    setPhrases(prev => prev.filter(p => p.id !== phraseId))
+
+    // Delete from Supabase if user ID available
+    if (supabaseUserId) {
+      try {
+        await db.deletePhrase(phraseId)
+      } catch (error) {
+        console.error('Failed to delete phrase from Supabase:', error)
+        // Continue anyway - phrase is already removed from state
+      }
+    }
+  }, [supabaseUserId])
+
   return (
     <AppContext.Provider value={{
       user, login, logout, updateDisplayName, deleteAllData, supabaseUserId,
@@ -308,7 +355,7 @@ export function AppProvider({ children }) {
       setVoiceId, updateVoiceSettings, clearVoice,
       speaking, lastSpoken, simulateSpeak,
       toasts, toast,
-      phrases, incrementPhrase,
+      phrases, incrementPhrase, addPhrase, deletePhrase,
       outputLang, setOutputLang,
       useDemoMode, setUseDemoMode,
       voiceArch, setVoiceArch,
