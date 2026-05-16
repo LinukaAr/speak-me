@@ -4,74 +4,44 @@ import { synthesise, handleApiError } from '@/lib/elevenlabs'
 import clsx from 'clsx'
 
 export default function PhraseCard({ phrase }) {
-  const { voiceId, voiceSettings, useDemoMode, simulateSpeak, incrementPhrase, toast } = useApp()
+  const { voiceId, voiceSettings, simulateSpeak, incrementPhrase, toast } = useApp()
   const [playing, setPlaying] = useState(false)
   const audioRef = useRef(null)
 
   const play = async () => {
     if (playing) return
-    
+
     setPlaying(true)
     incrementPhrase(phrase.id)
     simulateSpeak(phrase.text)
-    
-    // Force demo mode (browser speech) if toggle is on
-    if (useDemoMode) {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel()
-        const utterance = new SpeechSynthesisUtterance(phrase.text)
-        utterance.rate = 0.95
-        utterance.pitch = 1.0
-        utterance.onend = () => setPlaying(false)
-        window.speechSynthesis.speak(utterance)
-        
-        toast(`🎙 "${phrase.text.slice(0, 48)}${phrase.text.length > 48 ? '…' : ''}"`)
-      } else {
-        setPlaying(false)
-        toast('❌ Browser speech synthesis unavailable', 'error')
-      }
-      return
-    }
-    
-    // Use ElevenLabs (Real Mode)
-    const activeVoiceId = voiceId || '21m00Tcm4TlvDq8ikWAM' // Rachel voice (demo)
-    
+
+    const activeVoiceId = voiceId || '21m00Tcm4TlvDq8ikWAM'
+
     try {
-      // Convert voice settings from 0-100 to 0-1 range for API
       const settings = {
         stability: voiceSettings.stability / 100,
         similarity_boost: voiceSettings.similarityBoost / 100,
       }
-      
+
       const audioUrl = await synthesise(phrase.text, activeVoiceId, settings)
-      
-      // Play the synthesized audio
-      if (audioRef.current) {
-        audioRef.current.pause()
-      }
+
+      if (audioRef.current) audioRef.current.pause()
       audioRef.current = new Audio(audioUrl)
-      audioRef.current.play()
-      
-      // Stop playing state when audio ends
       audioRef.current.onended = () => setPlaying(false)
-      
+      audioRef.current.play()
+
       toast(`🎙 "${phrase.text.slice(0, 48)}${phrase.text.length > 48 ? '…' : ''}"`)
     } catch (error) {
-      console.error('Phrase synthesis error:', error)
-      
-      // Fallback to browser's built-in speech synthesis
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel()
         const utterance = new SpeechSynthesisUtterance(phrase.text)
         utterance.rate = 0.95
-        utterance.pitch = 1.0
         utterance.onend = () => setPlaying(false)
         window.speechSynthesis.speak(utterance)
-        
         toast(`🎙 "${phrase.text.slice(0, 48)}${phrase.text.length > 48 ? '…' : ''}"`)
       } else {
         setPlaying(false)
-        toast('❌ Speech synthesis unavailable', 'error')
+        toast(`❌ ${handleApiError(error)}`, 'error')
       }
     }
   }
@@ -91,7 +61,6 @@ export default function PhraseCard({ phrase }) {
         playing && 'cursor-wait',
       )}
     >
-      {/* top shimmer */}
       <div className={clsx(
         'absolute top-0 left-0 right-0 h-[2px] rounded-t-xl opacity-0 group-hover:opacity-100 transition-opacity',
         phrase.urgent

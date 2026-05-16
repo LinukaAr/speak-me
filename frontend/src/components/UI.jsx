@@ -202,38 +202,6 @@ export function Toggle({ on, onChange }) {
   )
 }
 
-// ── SIDE CARD ─────────────────────────────────────
-export function SideCard({ title, icon, children }) {
-  return (
-    <Card style={{ padding: '18px 20px', marginBottom: 14 }}>
-      <div style={{
-        fontFamily: 'var(--font-display)', fontWeight: 700,
-        fontSize: 13, marginBottom: 14,
-        display: 'flex', alignItems: 'center', gap: 8,
-        color: 'var(--text)',
-      }}>
-        {icon && <span style={{ fontSize: 15 }}>{icon}</span>}
-        {title}
-      </div>
-      {children}
-    </Card>
-  )
-}
-
-// ── STAT ROW ─────────────────────────────────────
-export function StatRow({ label, value, color }) {
-  return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      fontSize: 12, padding: '6px 0',
-      borderBottom: '1px solid rgba(255,255,255,.04)',
-    }}>
-      <span style={{ color: 'var(--text-3)' }}>{label}</span>
-      <span style={{ color: color || 'var(--text)', fontWeight: 500 }}>{value}</span>
-    </div>
-  )
-}
-
 // ── PHRASE CARD ───────────────────────────────────
 export function PhraseCard({ phrase, onPlay, playing }) {
   return (

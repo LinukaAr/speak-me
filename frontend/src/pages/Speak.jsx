@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '@/context/AppContext'
-import EmergencyStrip from '@/components/layout/EmergencyStrip'
 import PhraseCard from '@/components/ui/PhraseCard'
 import Waveform from '@/components/ui/Waveform'
 import { synthesise, handleApiError } from '@/lib/elevenlabs'
@@ -15,14 +14,12 @@ const LANGS = [
   { code: 'fr', label: '🇫🇷 French',  live: false },
 ]
 
-const SPEEDS = ['0.75×', '1.0×', '1.25×', '1.5×']
 const QTABS  = ['all', 'daily', 'medical', 'emergency']
 
 export default function Speak() {
-  const { user, voiceId, voiceName, voiceSettings, updateVoiceSettings, speaking, lastSpoken, simulateSpeak, phrases, toast, outputLang, setOutputLang, useDemoMode, setUseDemoMode } = useApp()
+  const { user, voiceId, voiceName, voiceSettings, updateVoiceSettings, speaking, lastSpoken, simulateSpeak, phrases, toast, outputLang, setOutputLang } = useApp()
   const navigate = useNavigate()
   const [text,      setText]      = useState('')
-  const [speed,     setSpeed]     = useState('1.0×')
   const [qTab,      setQTab]      = useState('all')
   const [voiceIn,   setVoiceIn]   = useState(false)
   const [isSynthesizing, setIsSynthesizing] = useState(false)
@@ -31,68 +28,37 @@ export default function Speak() {
 
   const handleSpeak = async () => {
     const t = text.trim() || "Good morning, how are you feeling today?"
-    
-    // Force demo mode (browser speech) if toggle is on
-    if (useDemoMode) {
-      setIsSynthesizing(true)
-      simulateSpeak(t)
-      
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel()
-        const utterance = new SpeechSynthesisUtterance(t)
-        utterance.rate = 0.95
-        utterance.pitch = 1.0
-        window.speechSynthesis.speak(utterance)
-        toast('🎙 Speaking in browser voice (Demo Mode)…')
-      } else {
-        toast('❌ Browser speech synthesis not available', 'error')
-      }
-      
-      setIsSynthesizing(false)
-      return
-    }
-    
-    // Use ElevenLabs (Real Mode)
-    const activeVoiceId = voiceId || '21m00Tcm4TlvDq8ikWAM' // Rachel voice (demo)
-    
+    const activeVoiceId = voiceId || '21m00Tcm4TlvDq8ikWAM' // Rachel voice fallback
+
     if (!voiceId) {
-      toast('ℹ️ Using ElevenLabs demo voice. Clone your voice in Voice Banking for personalized speech.', 'default')
+      toast('ℹ️ Using ElevenLabs demo voice. Clone your voice in Voice Banking for personalised speech.')
     }
-    
+
     try {
       setIsSynthesizing(true)
-      simulateSpeak(t) // Start visual feedback immediately
-      
-      // Convert voice settings from 0-100 to 0-1 range for API
+      simulateSpeak(t)
+
       const settings = {
         stability: voiceSettings.stability / 100,
         similarity_boost: voiceSettings.similarityBoost / 100,
       }
-      
+
       const audioUrl = await synthesise(t, activeVoiceId, settings)
-      
-      // Play the synthesized audio
-      if (audioRef.current) {
-        audioRef.current.pause()
-      }
+
+      if (audioRef.current) audioRef.current.pause()
       audioRef.current = new Audio(audioUrl)
       audioRef.current.play()
-      
+
       toast(`🎙 Speaking in ${voiceId ? 'your cloned voice' : 'ElevenLabs demo voice'}…`)
     } catch (error) {
-      console.error('Speech synthesis error:', error)
-      
-      // Fallback to browser's built-in speech synthesis
       if ('speechSynthesis' in window) {
-        toast('⚠️ ElevenLabs unavailable. Using browser speech as fallback.', 'default')
+        toast('⚠️ ElevenLabs unavailable — falling back to browser speech.')
         window.speechSynthesis.cancel()
         const utterance = new SpeechSynthesisUtterance(t)
         utterance.rate = 0.95
-        utterance.pitch = 1.0
         window.speechSynthesis.speak(utterance)
       } else {
-        const errorMessage = handleApiError(error)
-        toast(`❌ ${errorMessage}`, 'error')
+        toast(`❌ ${handleApiError(error)}`, 'error')
       }
     } finally {
       setIsSynthesizing(false)
@@ -106,11 +72,10 @@ export default function Speak() {
 
   return (
     <div className="z-content screen-enter">
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] min-h-[calc(100vh-65px)]">
+      <div className="min-h-[calc(100vh-65px)]">
 
         {/* ── MAIN ── */}
-        <div className="px-8 py-8 border-r border-border">
-          <EmergencyStrip />
+        <div className="px-8 py-8">
 
           {/* Voice badge */}
           {voiceId ? (
@@ -121,10 +86,6 @@ export default function Speak() {
                               flex items-center justify-center
                               font-display font-black text-xs text-white">
                 {user?.initials}
-              </div>
-              <div>
-                <strong className="text-green text-xs block leading-none mb-0.5">● Voice Active</strong>
-                <span className="text-muted text-[11px]">{voiceName} · ElevenLabs Clone</span>
               </div>
             </div>
           ) : (
@@ -149,32 +110,6 @@ export default function Speak() {
               </div>
             </div>
           )}
-
-          {/* Mode Toggle */}
-          <div className="inline-flex items-center gap-3 bg-card border border-border
-                          px-4 py-2.5 rounded-xl mb-6 ml-3">
-            <span className="text-xs text-muted font-medium">Speech Mode:</span>
-            <button
-              onClick={() => setUseDemoMode(!useDemoMode)}
-              className={clsx(
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                useDemoMode ? 'bg-amber' : 'bg-green'
-              )}
-            >
-              <span
-                className={clsx(
-                  'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                  useDemoMode ? 'translate-x-1' : 'translate-x-6'
-                )}
-              />
-            </button>
-            <span className={clsx(
-              'text-xs font-semibold',
-              useDemoMode ? 'text-amber' : 'text-green'
-            )}>
-              {useDemoMode ? '🖥️ Browser (Free)' : '🎙️ ElevenLabs (AI)'}
-            </span>
-          </div>
 
           {/* Language selector */}
           <div className="flex items-center gap-1.5 mb-4 flex-wrap">
@@ -222,23 +157,6 @@ export default function Speak() {
                             px-4 py-2.5 border-t border-border
                             bg-card/90 rounded-b-2xl backdrop-blur-sm">
               <div className="flex gap-2">
-                <button
-                  onClick={() => { setVoiceIn(p => !p); toast(voiceIn ? '🎤 Voice input off' : '🎤 Voice input active — speak now…') }}
-                  className={clsx(
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border transition-all',
-                    voiceIn
-                      ? 'bg-blue/10 border-blue/30 text-blue'
-                      : 'border-border text-muted hover:text-ink hover:border-border2'
-                  )}
-                >
-                  🎤 {voiceIn ? 'Listening…' : 'Voice Input'}
-                </button>
-                <button
-                  onClick={() => toast('💾 Phrase saved to Quick Phrases!')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-border text-muted hover:text-ink hover:border-border2 transition-all"
-                >
-                  💾 Save
-                </button>
               </div>
               <button
                 onClick={handleSpeak}
@@ -304,99 +222,7 @@ export default function Speak() {
             </div>
           </div>
         </div>
-
-        {/* ── SIDEBAR ── */}
-        <div className="px-6 py-8 bg-surf/40 hidden xl:block">
-          {/* Speed */}
-          <p className="text-[10px] font-bold tracking-widest uppercase text-muted mb-2">Playback Speed</p>
-          <div className="flex gap-1.5 mb-6">
-            {SPEEDS.map(s => (
-              <button
-                key={s}
-                onClick={() => setSpeed(s)}
-                className={clsx(
-                  'flex-1 py-2 rounded-lg text-xs font-bold border transition-all',
-                  speed === s
-                    ? 'bg-blue/10 border-blue/30 text-blue'
-                    : 'bg-card border-border text-muted hover:text-ink'
-                )}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-
-          {/* Stats */}
-          <SideCard title="🔬 Synthesis Stats">
-            {[['Last latency','1.3s','text-green'],['Voice similarity','91%','text-blue'],['Words today','312','text-ink'],['Language',outputLang.split(' ').slice(1).join(' '),'text-purple']].map(([k,v,c]) => (
-              <div key={k} className="flex justify-between items-center text-xs py-2 border-b border-white/4 last:border-0">
-                <span className="text-muted">{k}</span>
-                <span className={clsx('font-semibold', c)}>{v}</span>
-              </div>
-            ))}
-          </SideCard>
-
-          {/* Voice settings */}
-          <SideCard title="⚙️ Voice Settings">
-            <>
-              <div className="mb-3">
-                <div className="flex justify-between items-center text-xs mb-1.5">
-                  <span className="text-muted">Stability</span>
-                  <span className="text-ink font-semibold">{voiceSettings.stability}%</span>
-                </div>
-                <input 
-                  type="range" 
-                  min={0} 
-                  max={100} 
-                  value={voiceSettings.stability}
-                  onChange={(e) => updateVoiceSettings({ stability: parseInt(e.target.value) })}
-                  className="w-full accent-red h-1" 
-                />
-              </div>
-              <div className="mb-0">
-                <div className="flex justify-between items-center text-xs mb-1.5">
-                  <span className="text-muted">Similarity Boost</span>
-                  <span className="text-ink font-semibold">{voiceSettings.similarityBoost}%</span>
-                </div>
-                <input 
-                  type="range" 
-                  min={0} 
-                  max={100} 
-                  value={voiceSettings.similarityBoost}
-                  onChange={(e) => updateVoiceSettings({ similarityBoost: parseInt(e.target.value) })}
-                  className="w-full accent-red h-1" 
-                />
-              </div>
-              {!voiceId && (
-                <p className="text-xs text-blue mt-3 bg-blue/5 p-2 rounded">
-                  Settings work in demo mode too!
-                </p>
-              )}
-            </>
-          </SideCard>
-
-          {/* Family online */}
-          <SideCard title="👨‍👩‍👧 Family Online">
-            {[['Sarah','Carer','green'],['Michael','Son','green'],['Rachel','Friend','subtle']].map(([n,r,c]) => (
-              <div key={n} className="flex justify-between items-center text-xs py-2 border-b border-white/4 last:border-0">
-                <span className="text-muted">{n} <span className="text-subtle">({r})</span></span>
-                <span className={clsx('font-semibold', c === 'green' ? 'text-green' : 'text-subtle')}>
-                  {c === 'green' ? '● Online' : '○ Away'}
-                </span>
-              </div>
-            ))}
-          </SideCard>
-        </div>
       </div>
-    </div>
-  )
-}
-
-function SideCard({ title, children }) {
-  return (
-    <div className="bg-card border border-border rounded-xl p-4 mb-4">
-      <h4 className="font-display font-bold text-xs text-ink mb-3">{title}</h4>
-      {children}
     </div>
   )
 }

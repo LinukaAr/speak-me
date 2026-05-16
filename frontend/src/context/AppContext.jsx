@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { supabase, db } from '@/lib/supabase'
+import { db } from '@/lib/supabase'
 
 const AppContext = createContext(null)
 
@@ -48,7 +48,6 @@ export function AppProvider({ children }) {
   const [toasts,       setToasts]       = useState([])
   const [phrases,      setPhrases]      = useState(PHRASES)
   const [outputLang,   setOutputLang]   = useState('English')
-  const [useDemoMode,  setUseDemoMode]  = useState(false) // Toggle between demo (browser) and real (ElevenLabs)
   const [voiceArch,    setVoiceArch]    = useState({
     totalMinutes: 48, contributors: 6, clips: 23, similarity: 91, status: 'active'
   })
@@ -230,7 +229,6 @@ export function AppProvider({ children }) {
       toasts, toast,
       phrases, incrementPhrase,
       outputLang, setOutputLang,
-      useDemoMode, setUseDemoMode,
       voiceArch, setVoiceArch,
     }}>
       {children}

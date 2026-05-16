@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuthContext } from '@asgardeo/auth-react'
 import { useApp } from '@/context/AppContext'
 import clsx from 'clsx'
 
@@ -13,9 +14,10 @@ const NAV_ITEMS = [
 ]
 
 export default function Navbar() {
+  const { state } = useAuthContext()
   const { user, voiceId } = useApp()
   const navigate = useNavigate()
-  if (!user) return null
+  if (!state.isAuthenticated) return null
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-bg/85 backdrop-blur-2xl z-content">
@@ -65,7 +67,7 @@ export default function Navbar() {
                        font-display font-black text-xs text-white
                        hover:scale-105 transition-transform"
           >
-            {user.initials}
+            {user?.initials ?? '…'}
           </button>
         </div>
       </div>

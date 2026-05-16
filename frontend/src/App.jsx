@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthContext } from '@asgardeo/auth-react'
 import { AppProvider } from '@/context/AppContext'
 import Navbar from '@/components/layout/Navbar'
+import Toast from '@/components/ui/Toast'
 import Login from '@/pages/Login'
 import Speak from '@/pages/Speak'
 import Phrases from '@/pages/Phrases'
@@ -21,6 +22,7 @@ function AppRoutes() {
   return (
     <>
       <Navbar />
+      <Toast />
       <Routes>
         <Route path="/"           element={<Login />} />
         <Route path="/speak"      element={<ProtectedRoute><Speak /></ProtectedRoute>} />

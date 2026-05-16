@@ -4,23 +4,31 @@ import { useAuthContext } from '@asgardeo/auth-react'
 import { useApp } from '@/context/AppContext'
 
 export default function Login() {
-  const { state, signIn } = useAuthContext()
+  const { state, signIn, getBasicUserInfo } = useAuthContext()
   const { login, toast } = useApp()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (state.isAuthenticated) {
-      // Extract user info from Asgardeo
-      const email = state.email || state.username || ''
-      const displayName = state.displayName || state.username || email.split('@')[0]
-      const userId = state.sub || state.username // Asgardeo user ID
-      
-      // Login to app context
-      login(email, displayName, userId)
-      toast('✓ Welcome back! Your voice is ready.')
-      navigate('/speak')
-    }
-  }, [state.isAuthenticated, state.email, state.username, state.displayName, state.sub, login, toast, navigate])
+    if (!state.isAuthenticated) return
+
+    getBasicUserInfo()
+      .then(info => {
+        const email = info?.email || info?.username || ''
+        const displayName = info?.displayName || info?.givenName || info?.username || email.split('@')[0]
+        const userId = info?.sub || info?.username || email
+
+        login(email, displayName, userId)
+        toast('✓ Welcome back! Your voice is ready.')
+        navigate('/speak')
+      })
+      .catch(() => {
+        // Fallback: use whatever is on state
+        const email = state.username || ''
+        login(email, email.split('@')[0], email)
+        toast('✓ Signed in.')
+        navigate('/speak')
+      })
+  }, [state.isAuthenticated])
 
   return (
     <div className="min-h-screen z-content grid grid-cols-1 lg:grid-cols-2">
@@ -104,7 +112,7 @@ export default function Login() {
                 Signing in…
               </>
             ) : (
-              'Sign In with Asgardeo →'
+              'Sign In →'
             )}
           </button>
 
