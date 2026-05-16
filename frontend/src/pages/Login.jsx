@@ -100,10 +100,6 @@ export default function Login() {
               Try SpeakMe !
             </button>
           )}
-
-          <p className="text-center text-xs text-muted mt-8">
-            Family members can be invited from the Family Access page after signing in.
-          </p>
         </div>
       </div>
     </div>

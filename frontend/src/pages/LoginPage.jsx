@@ -163,10 +163,6 @@ export default function LoginPage() {
             {isRegister ? 'Sign in' : 'Create one'}
           </span>
         </p>
-
-        <p style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', marginTop: 16 }}>
-          Family members can be invited from the Family Access page after signing in.
-        </p>
       </div>
     </div>
   )
