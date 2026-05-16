@@ -16,7 +16,6 @@ export default function LoginPage() {
     setLoading(true)
     await new Promise(r => setTimeout(r, 1100))
     login()
-    showToast('✓ Welcome back, Aiden!', 'success')
     navigate('/speak')
     setLoading(false)
   }

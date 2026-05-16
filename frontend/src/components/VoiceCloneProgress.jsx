@@ -68,19 +68,6 @@ export default function VoiceCloneProgress({
           <p className="text-sm text-muted mb-4">
             Your voice has been successfully cloned and is ready to use.
           </p>
-          
-          {voiceId && (
-            <div className="bg-surf border border-border rounded-lg p-3 mb-4">
-              <div className="text-xs text-muted mb-1">Voice ID</div>
-              <code className="text-xs font-mono text-ink break-all">{voiceId}</code>
-              {voiceName && (
-                <>
-                  <div className="text-xs text-muted mt-2 mb-1">Voice Name</div>
-                  <div className="text-sm font-semibold text-ink">{voiceName}</div>
-                </>
-              )}
-            </div>
-          )}
 
           <button
             onClick={onNavigateToSpeak}

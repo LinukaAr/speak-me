@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from 'react'
 import { useApp } from '@/context/AppContext'
 import Waveform from '@/components/ui/Waveform'
 import { getAudioDuration, generateAudioFileId, formatDuration } from '@/lib/audioUtils'
-import { Mic, Pause, Play, Square, ArrowUp } from 'lucide-react'
+import { Mic, Pause, Play, Square, ArrowUp, RefreshCw } from 'lucide-react'
 import clsx from 'clsx'
 
-export default function AudioRecorder({ onRecordingComplete, onError }) {
+export default function AudioRecorder({ onRecordingComplete, onRetry, onError }) {
   const { toast } = useApp()
   const [isRecording, setIsRecording] = useState(false)
   const [recordingDuration, setRecordingDuration] = useState(0)
@@ -146,23 +146,45 @@ export default function AudioRecorder({ onRecordingComplete, onError }) {
       {!isRecording ? (
         <div className="text-center py-8">
           {justSaved ? (
-            <div className="mb-5 flex flex-col items-center gap-2 animate-pulse-once">
-            </div>
+            <>
+              {/* Saved state — show success + prompt + retry */}
+              <div className="mb-5 flex flex-col items-center gap-2">
+                <div className="flex items-center gap-2 bg-green/10 border border-green/25 text-green
+                                px-4 py-3 rounded-xl text-sm font-semibold">
+                  <span>✓ Recording saved!</span>
+                </div>
+              </div>
+
+              {/* Retry — replaces the recording, not adds another */}
+              <button
+                onClick={() => {
+                  setJustSaved(false)
+                  onRetry?.()
+                }}
+                className="flex items-center gap-2 px-5 py-2.5 mx-auto
+                           border border-border text-muted text-sm font-medium rounded-xl
+                           hover:text-ink hover:border-border2 transition-all active:scale-[.97]"
+              >
+                <RefreshCw size={14} /> Not happy? Re-record
+              </button>
+            </>
           ) : (
-            <p className="text-sm text-muted mb-6">
-              Click the button below to start recording your voice. Speak clearly and naturally.
-            </p>
+            <>
+              <p className="text-sm text-muted mb-6">
+                Click the button below to start recording your voice. Speak clearly and naturally.
+              </p>
+              <button
+                onClick={startRecording}
+                className="flex items-center gap-2 px-6 py-3 mx-auto
+                           bg-red text-white text-sm font-semibold rounded-xl
+                           hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red/30
+                           transition-all active:scale-[.97]"
+              >
+                <span className="w-2.5 h-2.5 rounded-full bg-white" />
+                Start Recording
+              </button>
+            </>
           )}
-          <button
-            onClick={startRecording}
-            className="flex items-center gap-2 px-6 py-3 mx-auto
-                       bg-red text-white text-sm font-semibold rounded-xl
-                       hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red/30
-                       transition-all active:scale-[.97]"
-          >
-            <span className="w-2.5 h-2.5 rounded-full bg-white" />
-            {justSaved ? 'Record Another' : 'Start Recording'}
-          </button>
         </div>
       ) : (
         <div className="space-y-4">

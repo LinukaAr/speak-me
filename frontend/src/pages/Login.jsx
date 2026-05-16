@@ -29,7 +29,6 @@ export default function Login() {
         const userId = info?.sub || info?.username || email
 
         login(email, displayName, userId)
-        toast('✓ Welcome back! Your voice is ready.')
         navigate('/speak')
       })
       .catch(() => {
