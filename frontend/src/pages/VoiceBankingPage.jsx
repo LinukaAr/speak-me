@@ -9,8 +9,15 @@ import { cloneVoiceFromFiles, handleApiError } from '@/lib/elevenlabs'
 import { supabase, db, storage, handleSupabaseError } from '@/lib/supabase'
 
 export default function VoiceBankingPage() {
-  const { user, setVoiceId, toast } = useApp()
+  const { user, supabaseUserId, setVoiceId, toast } = useApp()
   const navigate = useNavigate()
+  
+  // Debug: Log user state
+  useEffect(() => {
+    console.log('🔍 VoiceBankingPage mounted')
+    console.log('User from AppContext:', user)
+    console.log('Supabase User ID:', supabaseUserId)
+  }, [user, supabaseUserId])
   
   const [audioFiles, setAudioFiles] = useState([])
   const [cloneStatus, setCloneStatus] = useState('idle') // 'idle' | 'uploading' | 'processing' | 'success' | 'error'
@@ -18,18 +25,6 @@ export default function VoiceBankingPage() {
   const [errorMessage, setErrorMessage] = useState(null)
   const [clonedVoiceId, setClonedVoiceId] = useState(null)
   const [clonedVoiceName, setClonedVoiceName] = useState(null)
-  const [supabaseUserId, setSupabaseUserId] = useState(null)
-
-  // Get Supabase user ID on mount
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        setSupabaseUserId(session.user.id)
-      }
-    }
-    getUser()
-  }, [])
 
   // Calculate total duration
   const totalDuration = audioFiles.reduce((sum, file) => sum + file.duration, 0)
@@ -57,23 +52,31 @@ export default function VoiceBankingPage() {
 
   // Handle voice cloning
   const handleCloneVoice = async () => {
+    console.log('🔵 Clone button clicked!')
+    console.log('Can clone:', canClone)
+    console.log('User:', user)
+    console.log('Audio files:', audioFiles)
+    console.log('Total duration:', totalDuration)
+    
     if (!canClone) {
       toast('⚠️ You need at least 3 seconds of audio to clone your voice')
       return
     }
 
-    if (!user) {
-      toast('⚠️ Please log in first')
-      return
-    }
+    // Use a default name if user is not set (shouldn't happen, but fallback)
+    const userName = user?.name || user?.email || 'My Voice'
+    console.log('Using name:', userName)
 
     // Check if Supabase is configured
     const isSupabaseConfigured = supabaseUserId !== null
+    console.log('Supabase configured:', isSupabaseConfigured)
 
     try {
       setCloneStatus('uploading')
       setUploadProgress(0)
       setErrorMessage(null)
+      
+      console.log('🟢 Starting voice cloning process...')
 
       let voiceCloneId = null
       let uploadedFilePaths = []
@@ -118,11 +121,16 @@ export default function VoiceBankingPage() {
       }
 
       // Step 2: Clone voice with ElevenLabs
+      console.log('🟡 Calling ElevenLabs API...')
+      console.log('User name:', userName)
+      console.log('Audio files to send:', audioFiles.map(f => ({ name: f.name, duration: f.duration, size: f.blob.size })))
+      
       toast('🧬 Cloning voice with ElevenLabs AI...')
       setUploadProgress(60)
       
-      const result = await cloneVoiceFromFiles(user.name, audioFiles)
+      const result = await cloneVoiceFromFiles(userName, audioFiles)
       
+      console.log('✅ ElevenLabs response:', result)
       setUploadProgress(80)
       
       // Step 3: Save voice clone metadata to Supabase (if configured)
@@ -185,11 +193,17 @@ export default function VoiceBankingPage() {
       }
       
     } catch (error) {
-      console.error('Voice cloning error:', error)
+      console.error('❌ Voice cloning error:', error)
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response,
+      })
+      
       const friendlyError = handleApiError(error, error.response)
       setErrorMessage(friendlyError)
       setCloneStatus('error')
-      toast('❌ Voice cloning failed')
+      toast('❌ Voice cloning failed: ' + friendlyError)
     }
   }
 
@@ -207,6 +221,22 @@ export default function VoiceBankingPage() {
 
   return (
     <div className="z-content screen-enter px-8 py-8 max-w-7xl mx-auto">
+      {/* Debug Banner */}
+      {!user && (
+        <div className="mb-6 p-4 bg-amber/10 border border-amber/30 rounded-xl">
+          <div className="font-bold text-amber mb-1">⚠️ Not Logged In</div>
+          <div className="text-sm text-muted">
+            You need to sign in first. User data: {JSON.stringify(user)}
+          </div>
+          <button
+            onClick={() => navigate('/')}
+            className="mt-2 px-4 py-2 bg-amber text-white rounded-lg text-sm font-semibold"
+          >
+            Go to Login
+          </button>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 text-[10px] font-bold tracking-[2px]

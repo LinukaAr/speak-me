@@ -11,6 +11,12 @@ const headers = () => ({
 
 // ── Clone voice from audio files ─────────────────
 export async function cloneVoiceFromFiles(name, audioFiles) {
+  console.log('📞 cloneVoiceFromFiles called')
+  console.log('Name:', name)
+  console.log('Audio files:', audioFiles)
+  console.log('API Key configured:', !!API_KEY)
+  console.log('API Key (first 10 chars):', API_KEY?.substring(0, 10))
+  
   if (!API_KEY) {
     throw new Error('ElevenLabs API key not configured')
   }
@@ -22,21 +28,31 @@ export async function cloneVoiceFromFiles(name, audioFiles) {
   // Add each audio file to the form
   audioFiles.forEach((audioFile, index) => {
     const filename = audioFile.name || `audio_${index}.mp3`
+    console.log(`Adding file ${index}:`, filename, 'Size:', audioFile.blob.size, 'Type:', audioFile.blob.type)
     form.append('files', audioFile.blob, filename)
   })
 
+  console.log('🚀 Sending request to ElevenLabs...')
+  console.log('URL:', `${BASE_URL}/voices/add`)
+  
   const res = await fetch(`${BASE_URL}/voices/add`, {
     method: 'POST',
     headers: { 'xi-api-key': API_KEY },
     body: form,
   })
   
+  console.log('📥 Response status:', res.status)
+  console.log('📥 Response ok:', res.ok)
+  
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}))
+    console.error('❌ ElevenLabs API error:', errorData)
     throw new Error(errorData.detail?.message || `Voice cloning failed: ${res.status}`)
   }
   
   const data = await res.json()
+  console.log('✅ ElevenLabs success:', data)
+  
   return {
     voice_id: data.voice_id,
     name: name,
@@ -158,6 +174,10 @@ export function handleApiError(error, response) {
   // Handle HTTP status codes
   if (response?.status === 401) {
     return 'Invalid API key. Please check your ElevenLabs API key in the .env file and restart the development server.'
+  }
+  
+  if (response?.status === 402 || error?.message?.includes('402')) {
+    return 'ElevenLabs account has no credits. Please add credits at https://elevenlabs.io/app/settings/billing or upgrade your plan.'
   }
   
   if (response?.status === 429) {

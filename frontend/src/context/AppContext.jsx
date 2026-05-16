@@ -48,6 +48,7 @@ export function AppProvider({ children }) {
   const [toasts,       setToasts]       = useState([])
   const [phrases,      setPhrases]      = useState(PHRASES)
   const [outputLang,   setOutputLang]   = useState('English')
+  const [useDemoMode,  setUseDemoMode]  = useState(false) // Toggle between demo (browser) and real (ElevenLabs)
   const [voiceArch,    setVoiceArch]    = useState({
     totalMinutes: 48, contributors: 6, clips: 23, similarity: 91, status: 'active'
   })
@@ -62,16 +63,22 @@ export function AppProvider({ children }) {
     if (supabaseUserId) {
       try {
         // Get active voice clone from Supabase
-        const { voiceClone } = await db.getActiveVoiceClone(supabaseUserId)
-        if (voiceClone) {
+        const { voiceClone, error: voiceError } = await db.getActiveVoiceClone(supabaseUserId)
+        if (voiceError) {
+          console.warn('Could not load voice clone from Supabase:', voiceError)
+          // Don't throw - fallback to localStorage
+        } else if (voiceClone) {
           setVoiceIdState(voiceClone.elevenlabs_voice_id)
           setVoiceNameState(voiceClone.voice_name)
           setVoiceCreatedAt(new Date(voiceClone.created_at).getTime())
         }
 
         // Get voice settings from Supabase
-        const { settings } = await db.getVoiceSettings(supabaseUserId)
-        if (settings) {
+        const { settings, error: settingsError } = await db.getVoiceSettings(supabaseUserId)
+        if (settingsError) {
+          console.warn('Could not load voice settings from Supabase:', settingsError)
+          // Don't throw - use defaults
+        } else if (settings) {
           setVoiceSettingsState({
             stability: settings.stability,
             similarityBoost: settings.similarity_boost,
@@ -79,9 +86,11 @@ export function AppProvider({ children }) {
         }
       } catch (error) {
         console.error('Error loading voice data from Supabase:', error)
-        // Fallback to localStorage
-        loadFromLocalStorage()
+        // Fallback to localStorage - don't let Supabase errors break the app
       }
+      
+      // Always try localStorage as fallback
+      loadFromLocalStorage()
     } else {
       // No Supabase user ID, load from localStorage
       loadFromLocalStorage()
@@ -221,6 +230,7 @@ export function AppProvider({ children }) {
       toasts, toast,
       phrases, incrementPhrase,
       outputLang, setOutputLang,
+      useDemoMode, setUseDemoMode,
       voiceArch, setVoiceArch,
     }}>
       {children}

@@ -19,7 +19,7 @@ const SPEEDS = ['0.75×', '1.0×', '1.25×', '1.5×']
 const QTABS  = ['all', 'daily', 'medical', 'emergency']
 
 export default function Speak() {
-  const { user, voiceId, voiceName, voiceSettings, updateVoiceSettings, speaking, lastSpoken, simulateSpeak, phrases, toast, outputLang, setOutputLang } = useApp()
+  const { user, voiceId, voiceName, voiceSettings, updateVoiceSettings, speaking, lastSpoken, simulateSpeak, phrases, toast, outputLang, setOutputLang, useDemoMode, setUseDemoMode } = useApp()
   const navigate = useNavigate()
   const [text,      setText]      = useState('')
   const [speed,     setSpeed]     = useState('1.0×')
@@ -30,12 +30,34 @@ export default function Speak() {
   const audioRef = useRef(null)
 
   const handleSpeak = async () => {
-    if (!voiceId) {
-      toast('⚠️ No voice cloned yet. Please visit Voice Banking first.', 'error')
+    const t = text.trim() || "Good morning, how are you feeling today?"
+    
+    // Force demo mode (browser speech) if toggle is on
+    if (useDemoMode) {
+      setIsSynthesizing(true)
+      simulateSpeak(t)
+      
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+        const utterance = new SpeechSynthesisUtterance(t)
+        utterance.rate = 0.95
+        utterance.pitch = 1.0
+        window.speechSynthesis.speak(utterance)
+        toast('🎙 Speaking in browser voice (Demo Mode)…')
+      } else {
+        toast('❌ Browser speech synthesis not available', 'error')
+      }
+      
+      setIsSynthesizing(false)
       return
     }
-
-    const t = text.trim() || "Good morning, how are you feeling today?"
+    
+    // Use ElevenLabs (Real Mode)
+    const activeVoiceId = voiceId || '21m00Tcm4TlvDq8ikWAM' // Rachel voice (demo)
+    
+    if (!voiceId) {
+      toast('ℹ️ Using ElevenLabs demo voice. Clone your voice in Voice Banking for personalized speech.', 'default')
+    }
     
     try {
       setIsSynthesizing(true)
@@ -47,7 +69,7 @@ export default function Speak() {
         similarity_boost: voiceSettings.similarityBoost / 100,
       }
       
-      const audioUrl = await synthesise(t, voiceId, settings)
+      const audioUrl = await synthesise(t, activeVoiceId, settings)
       
       // Play the synthesized audio
       if (audioRef.current) {
@@ -56,11 +78,22 @@ export default function Speak() {
       audioRef.current = new Audio(audioUrl)
       audioRef.current.play()
       
-      toast('🎙 Speaking in your cloned voice…')
+      toast(`🎙 Speaking in ${voiceId ? 'your cloned voice' : 'ElevenLabs demo voice'}…`)
     } catch (error) {
-      const errorMessage = handleApiError(error)
-      toast(`❌ ${errorMessage}`, 'error')
       console.error('Speech synthesis error:', error)
+      
+      // Fallback to browser's built-in speech synthesis
+      if ('speechSynthesis' in window) {
+        toast('⚠️ ElevenLabs unavailable. Using browser speech as fallback.', 'default')
+        window.speechSynthesis.cancel()
+        const utterance = new SpeechSynthesisUtterance(t)
+        utterance.rate = 0.95
+        utterance.pitch = 1.0
+        window.speechSynthesis.speak(utterance)
+      } else {
+        const errorMessage = handleApiError(error)
+        toast(`❌ ${errorMessage}`, 'error')
+      }
     } finally {
       setIsSynthesizing(false)
     }
@@ -96,24 +129,52 @@ export default function Speak() {
             </div>
           ) : (
             <div className="inline-flex items-center gap-3
-                            bg-amber/8 border border-amber/20
+                            bg-blue/8 border border-blue/20
                             px-4 py-2.5 rounded-full mb-6">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber to-orange
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue to-purple
                               flex items-center justify-center
                               font-display font-black text-xs text-white">
-                ⚠️
+                🎤
               </div>
               <div>
-                <strong className="text-amber text-xs block leading-none mb-0.5">No Voice Cloned</strong>
-                <button 
-                  onClick={() => navigate('/voice-banking')}
-                  className="text-muted text-[11px] hover:text-ink underline"
-                >
-                  Visit Voice Banking to clone your voice →
-                </button>
+                <strong className="text-blue text-xs block leading-none mb-0.5">● Demo Mode</strong>
+                <span className="text-muted text-[11px]">Using Rachel (ElevenLabs) · 
+                  <button 
+                    onClick={() => navigate('/voice-banking')}
+                    className="text-blue hover:underline ml-1"
+                  >
+                    Clone your voice →
+                  </button>
+                </span>
               </div>
             </div>
           )}
+
+          {/* Mode Toggle */}
+          <div className="inline-flex items-center gap-3 bg-card border border-border
+                          px-4 py-2.5 rounded-xl mb-6 ml-3">
+            <span className="text-xs text-muted font-medium">Speech Mode:</span>
+            <button
+              onClick={() => setUseDemoMode(!useDemoMode)}
+              className={clsx(
+                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                useDemoMode ? 'bg-amber' : 'bg-green'
+              )}
+            >
+              <span
+                className={clsx(
+                  'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                  useDemoMode ? 'translate-x-1' : 'translate-x-6'
+                )}
+              />
+            </button>
+            <span className={clsx(
+              'text-xs font-semibold',
+              useDemoMode ? 'text-amber' : 'text-green'
+            )}>
+              {useDemoMode ? '🖥️ Browser (Free)' : '🎙️ ElevenLabs (AI)'}
+            </span>
+          </div>
 
           {/* Language selector */}
           <div className="flex items-center gap-1.5 mb-4 flex-wrap">
@@ -181,11 +242,11 @@ export default function Speak() {
               </div>
               <button
                 onClick={handleSpeak}
-                disabled={!voiceId || isSynthesizing}
+                disabled={isSynthesizing}
                 className={clsx(
                   "flex items-center gap-2 px-5 py-2",
                   "text-sm font-semibold rounded-xl transition-all",
-                  voiceId && !isSynthesizing
+                  !isSynthesizing
                     ? "bg-red text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red/30 active:scale-[.97]"
                     : "bg-border text-subtle cursor-not-allowed"
                 )}
@@ -277,40 +338,41 @@ export default function Speak() {
 
           {/* Voice settings */}
           <SideCard title="⚙️ Voice Settings">
-            {voiceId ? (
-              <>
-                <div className="mb-3">
-                  <div className="flex justify-between items-center text-xs mb-1.5">
-                    <span className="text-muted">Stability</span>
-                    <span className="text-ink font-semibold">{voiceSettings.stability}%</span>
-                  </div>
-                  <input 
-                    type="range" 
-                    min={0} 
-                    max={100} 
-                    value={voiceSettings.stability}
-                    onChange={(e) => updateVoiceSettings({ stability: parseInt(e.target.value) })}
-                    className="w-full accent-red h-1" 
-                  />
+            <>
+              <div className="mb-3">
+                <div className="flex justify-between items-center text-xs mb-1.5">
+                  <span className="text-muted">Stability</span>
+                  <span className="text-ink font-semibold">{voiceSettings.stability}%</span>
                 </div>
-                <div className="mb-0">
-                  <div className="flex justify-between items-center text-xs mb-1.5">
-                    <span className="text-muted">Similarity Boost</span>
-                    <span className="text-ink font-semibold">{voiceSettings.similarityBoost}%</span>
-                  </div>
-                  <input 
-                    type="range" 
-                    min={0} 
-                    max={100} 
-                    value={voiceSettings.similarityBoost}
-                    onChange={(e) => updateVoiceSettings({ similarityBoost: parseInt(e.target.value) })}
-                    className="w-full accent-red h-1" 
-                  />
+                <input 
+                  type="range" 
+                  min={0} 
+                  max={100} 
+                  value={voiceSettings.stability}
+                  onChange={(e) => updateVoiceSettings({ stability: parseInt(e.target.value) })}
+                  className="w-full accent-red h-1" 
+                />
+              </div>
+              <div className="mb-0">
+                <div className="flex justify-between items-center text-xs mb-1.5">
+                  <span className="text-muted">Similarity Boost</span>
+                  <span className="text-ink font-semibold">{voiceSettings.similarityBoost}%</span>
                 </div>
-              </>
-            ) : (
-              <p className="text-xs text-muted">Clone your voice first to adjust settings</p>
-            )}
+                <input 
+                  type="range" 
+                  min={0} 
+                  max={100} 
+                  value={voiceSettings.similarityBoost}
+                  onChange={(e) => updateVoiceSettings({ similarityBoost: parseInt(e.target.value) })}
+                  className="w-full accent-red h-1" 
+                />
+              </div>
+              {!voiceId && (
+                <p className="text-xs text-blue mt-3 bg-blue/5 p-2 rounded">
+                  Settings work in demo mode too!
+                </p>
+              )}
+            </>
           </SideCard>
 
           {/* Family online */}

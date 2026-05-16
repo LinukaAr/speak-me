@@ -6,8 +6,19 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
-// Initialize Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Initialize Supabase client with proper headers
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false, // We're using Asgardeo for auth, not Supabase
+    autoRefreshToken: false,
+  },
+  global: {
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+  },
+})
 
 // ── AUTHENTICATION HELPERS ──────────────────────────────────────
 
