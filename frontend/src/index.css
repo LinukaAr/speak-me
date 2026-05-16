@@ -44,3 +44,27 @@
 @keyframes fade-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 @keyframes ripple{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.35);opacity:0}}
+
+/* ── Accessibility overrides ── */
+html.a11y-larger-text{font-size:118%}
+
+html.a11y-high-contrast body{color:#ffffff}
+html.a11y-high-contrast{
+  --a11y-muted:#8ecfec;
+  --a11y-border:#006b8f;
+}
+html.a11y-high-contrast .text-muted{color:#8ecfec !important}
+html.a11y-high-contrast .text-subtle{color:#5b9ab8 !important}
+html.a11y-high-contrast .border-border{border-color:#006b8f !important}
+html.a11y-high-contrast .bg-card{background:#003550 !important}
+html.a11y-high-contrast .bg-surf{background:#002a40 !important}
+html.a11y-high-contrast input,
+html.a11y-high-contrast textarea{border-color:#006b8f !important;color:#ffffff !important}
+
+html.a11y-reduce-motion *,
+html.a11y-reduce-motion *::before,
+html.a11y-reduce-motion *::after{
+  animation:none !important;
+  transition:none !important;
+  transition-duration:0ms !important;
+}

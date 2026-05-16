@@ -117,12 +117,6 @@ export default function Login() {
           </button>
 
           <p className="text-center text-xs text-muted mt-8">
-            <button
-              onClick={() => toast('👨‍👩‍👧 Enter the family access code sent to you by a patient')}
-              className="text-muted hover:text-ink transition-colors"
-            >
-              I was invited as a family member →
-            </button>
           </p>
         </div>
       </div>

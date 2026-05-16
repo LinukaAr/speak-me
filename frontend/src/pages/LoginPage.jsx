@@ -163,11 +163,6 @@ export default function LoginPage() {
             {isRegister ? 'Sign in' : 'Create one'}
           </span>
         </p>
-        <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', marginTop: 10 }}>
-          <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => showToast('👨‍👩‍👧 Enter the invite code sent by your family member', 'default')}>
-            I was invited as a family member →
-          </span>
-        </p>
       </div>
     </div>
   )

@@ -264,30 +264,6 @@ export function SettingsPage() {
 
       <div style={{ padding: '44px 48px', overflowY: 'auto' }}>
 
-        {/* Voice Clone */}
-        <section style={{ marginBottom: 40 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, marginBottom: 16, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
-            🎙 Your Voice Clone
-          </div>
-          <Card style={{ padding: '20px 22px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 16, border: '1.5px solid rgba(15,219,138,.2)' }}>
-            <Avatar initials={user?.initials} gradient="linear-gradient(135deg,var(--red),var(--purple))" size={52} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, marginBottom: 3 }}>{user?.voiceName}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-3)' }}>Voice ID: {user?.voiceId} · {user?.voiceDuration} training audio</div>
-            </div>
-            <Badge color="green">{user?.voiceSimilarity}% Similarity</Badge>
-          </Card>
-          {[['Stability', stability, setStability, 'Higher = more consistent; lower = more expressive'], ['Similarity Boost', similarity, setSimilarity, 'Higher = closer to your original voice']].map(([label, val, setter, desc]) => (
-            <Card key={label} style={{ padding: '14px 18px', marginBottom: 9, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div><div style={{ fontSize: 14, fontWeight: 600 }}>{label}</div><div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{desc}</div></div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 13, color: 'var(--text-2)', minWidth: 32, textAlign: 'right' }}>{val}%</span>
-                <input type="range" min={0} max={100} value={val} onChange={e => setter(Number(e.target.value))} style={{ width: 130, accentColor: 'var(--red)' }} />
-              </div>
-            </Card>
-          ))}
-        </section>
-
         {/* Language */}
         <section style={{ marginBottom: 40 }}>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, marginBottom: 16, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>

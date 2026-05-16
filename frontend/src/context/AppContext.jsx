@@ -48,9 +48,23 @@ export function AppProvider({ children }) {
   const [toasts,       setToasts]       = useState([])
   const [phrases,      setPhrases]      = useState(PHRASES)
   const [outputLang,   setOutputLang]   = useState('English')
-  const [useDemoMode,  setUseDemoMode]  = useState(false) // Toggle between demo (browser) and real (ElevenLabs)
+  const [useDemoMode,  setUseDemoMode]  = useState(false)
   const [voiceArch,    setVoiceArch]    = useState({
     totalMinutes: 48, contributors: 6, clips: 23, similarity: 91, status: 'active'
+  })
+
+  const [accessibility, setAccessibilityState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('speakme_accessibility')
+      return saved ? JSON.parse(saved) : { largerText: false, highContrast: false, reduceMotion: false, hapticFeedback: false }
+    } catch { return { largerText: false, highContrast: false, reduceMotion: false, hapticFeedback: false } }
+  })
+
+  const [privacySettings, setPrivacySettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('speakme_privacy')
+      return saved ? JSON.parse(saved) : { storeHistory: true, analytics: false }
+    } catch { return { storeHistory: true, analytics: false } }
   })
 
   // Load voice data from Supabase or localStorage on mount
@@ -119,6 +133,30 @@ export function AppProvider({ children }) {
       }
     }
   }
+
+  // Apply accessibility CSS classes to <html> whenever the setting changes
+  useEffect(() => {
+    const html = document.documentElement
+    html.classList.toggle('a11y-larger-text',   accessibility.largerText)
+    html.classList.toggle('a11y-high-contrast', accessibility.highContrast)
+    html.classList.toggle('a11y-reduce-motion', accessibility.reduceMotion)
+  }, [accessibility])
+
+  const updateAccessibility = useCallback((key, value) => {
+    setAccessibilityState(prev => {
+      const next = { ...prev, [key]: value }
+      localStorage.setItem('speakme_accessibility', JSON.stringify(next))
+      return next
+    })
+  }, [])
+
+  const updatePrivacySettings = useCallback((key, value) => {
+    setPrivacySettings(prev => {
+      const next = { ...prev, [key]: value }
+      localStorage.setItem('speakme_privacy', JSON.stringify(next))
+      return next
+    })
+  }, [])
 
   const setVoiceId = useCallback(async (voiceId, voiceName) => {
     const timestamp = Date.now()
@@ -191,8 +229,17 @@ export function AppProvider({ children }) {
   }, [])
 
   // Login function - called by Asgardeo after authentication
+  const updateDisplayName = useCallback((newName) => {
+    const trimmed = newName.trim()
+    if (!trimmed) return
+    const initials = trimmed.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2)
+    setUser(prev => ({ ...prev, name: trimmed, initials }))
+    localStorage.setItem('speakme_displayName', trimmed)
+  }, [])
+
   const login = useCallback(async (email, displayName, asgardeoUserId) => {
-    const name = displayName || email?.split('@')[0] || 'User'
+    const savedName = localStorage.getItem('speakme_displayName')
+    const name = savedName || displayName || email?.split('@')[0]?.replace(/[._-]/g, ' ') || 'User'
     const initials = name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2)
     
     setUser({ name, email, initials })
@@ -225,15 +272,30 @@ export function AppProvider({ children }) {
   const logout = useCallback(() => {
     setUser(null)
     setSupabaseUserId(null)
+    localStorage.removeItem('speakme_displayName')
+    clearVoice()
+  }, [clearVoice])
+
+  const deleteAllData = useCallback(() => {
+    const keys = [
+      'speakme_displayName', 'speakme_accessibility', 'speakme_privacy',
+      'silentStage_voiceId', 'silentStage_voiceName',
+      'silentStage_voiceCreatedAt', 'silentStage_voiceSettings',
+    ]
+    keys.forEach(k => localStorage.removeItem(k))
+    setLastSpoken('')
     clearVoice()
   }, [clearVoice])
 
   const simulateSpeak = useCallback((text) => {
     if (!text.trim()) return
     setSpeaking(true)
-    setLastSpoken(text)
+    if (privacySettings.storeHistory) setLastSpoken(text)
     setTimeout(() => setSpeaking(false), text.length * 60 + 800)
-  }, [])
+    if (accessibility.hapticFeedback && 'vibrate' in navigator) {
+      navigator.vibrate([80, 40, 80])
+    }
+  }, [accessibility.hapticFeedback, privacySettings.storeHistory])
 
   const incrementPhrase = useCallback((id) => {
     setPhrases(p => p.map(ph => ph.id === id ? { ...ph, uses: ph.uses + 1 } : ph))
@@ -241,7 +303,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
-      user, login, logout, supabaseUserId,
+      user, login, logout, updateDisplayName, deleteAllData, supabaseUserId,
       voiceId, voiceName, voiceCreatedAt, voiceSettings,
       setVoiceId, updateVoiceSettings, clearVoice,
       speaking, lastSpoken, simulateSpeak,
@@ -250,6 +312,8 @@ export function AppProvider({ children }) {
       outputLang, setOutputLang,
       useDemoMode, setUseDemoMode,
       voiceArch, setVoiceArch,
+      accessibility, updateAccessibility,
+      privacySettings, updatePrivacySettings,
     }}>
       {children}
     </AppContext.Provider>

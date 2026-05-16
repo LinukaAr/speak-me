@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthContext } from '@asgardeo/auth-react'
 import { useApp } from '@/context/AppContext'
 import {
   Mic, Globe, Lock, AlertTriangle, Accessibility, User,
-  ChevronRight, LogOut,
+  ChevronRight, LogOut, Pencil, Check, X, ExternalLink,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -19,16 +19,20 @@ const LANGS = [
   { flag:'🤟',  name:'Sign (ASL)',tag:'Phase 3+',    cls:'future' },
 ]
 
-const NAV = ['Voice Clone','Language','Privacy','Emergency','Accessibility','Account']
+const NAV = ['Accessibility','Language','Privacy','Account']
 
 export default function Settings() {
   const { signOut } = useAuthContext()
-  const { user, logout, voiceId, voiceName, voiceCreatedAt, voiceSettings, updateVoiceSettings, toast } = useApp()
+  const { user, logout, updateDisplayName, deleteAllData, voiceId, voiceName, voiceCreatedAt, voiceSettings, updateVoiceSettings, toast, accessibility, updateAccessibility, privacySettings, updatePrivacySettings } = useApp()
   const navigate = useNavigate()
-  const [section, setSection] = useState('Voice Clone')
+  const [section, setSection] = useState('Accessibility')
   const [privToggles, setPrivToggles] = useState({ history: true, analytics: false })
   const [emToggles,   setEmToggles]   = useState({ location: true, inactivity: true })
   const [selLang, setSelLang] = useState('English')
+  const [editingName,   setEditingName]   = useState(false)
+  const [nameInput,     setNameInput]     = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const nameRef = useRef(null)
 
   const tog = (_obj, set, key) => set(p => ({ ...p, [key]: !p[key] }))
 
@@ -112,76 +116,6 @@ export default function Settings() {
       {/* ── BODY ── */}
       <div className="px-4 sm:px-6 md:px-10 py-6 md:py-8 overflow-y-auto">
 
-        {section === 'Voice Clone' && (
-          <div>
-            <SectionTitle icon={<Mic size={20} />}>Your Voice Clone</SectionTitle>
-
-            {voiceId ? (
-              <>
-                {/* Clone card */}
-                <div className="flex flex-wrap items-center gap-4 bg-green/6 border border-green/20
-                                rounded-xl p-5 mb-5">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-red to-purple
-                                  flex items-center justify-center font-display font-black text-xl text-white">
-                    {user?.initials}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-display font-bold text-base">{voiceName}</div>
-                    <div className="text-xs text-muted mt-0.5">
-                      Voice ID: {voiceId.slice(0, 12)}... · Created {formatDate(voiceCreatedAt)}
-                    </div>
-                  </div>
-                  <span className="flex items-center gap-1.5 bg-green/10 text-green border border-green/20 px-3 py-1.5 rounded-full text-xs font-bold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green" />
-                    Active
-                  </span>
-                </div>
-
-                {[{ label:'Stability', val:voiceSettings.stability, help:'Higher = more consistent; lower = more expressive' },
-                  { label:'Similarity Boost', val:voiceSettings.similarityBoost, help:'Higher = closer to original voice; lower = more creative' }
-                ].map(({ label, val, help }) => (
-                  <SettingRow key={label} title={label} desc={help}>
-                    <div className="flex items-center gap-3">
-                      <input type="range" min={0} max={100} value={val}
-                        onChange={e => {
-                          const key = label === 'Stability' ? 'stability' : 'similarityBoost'
-                          updateVoiceSettings({ [key]: +e.target.value })
-                        }}
-                        className="w-32 accent-red" />
-                      <span className="text-xs text-muted w-8 text-right">{val}%</span>
-                    </div>
-                  </SettingRow>
-                ))}
-
-                <SettingRow title="Update voice clone" desc="Add more recordings or create a new voice clone">
-                  <button
-                    onClick={() => { navigate('/voice-banking'); toast('🎙 Opening Voice Banking…') }}
-                    className="px-4 py-1.5 bg-red/10 border border-red/25 text-red text-xs font-bold
-                               rounded-lg hover:bg-red/18 transition-colors"
-                  >
-                    Voice Banking
-                  </button>
-                </SettingRow>
-              </>
-            ) : (
-              <div className="bg-amber/6 border border-amber/20 rounded-xl p-6 text-center">
-                <div className="text-4xl mb-3">🎙</div>
-                <h3 className="font-display font-bold text-lg mb-2">No Voice Clone Yet</h3>
-                <p className="text-sm text-muted mb-4">
-                  Create your voice clone to start speaking with your own voice
-                </p>
-                <button
-                  onClick={() => navigate('/voice-banking')}
-                  className="px-5 py-2.5 bg-red text-white text-sm font-bold
-                             rounded-xl hover:shadow-lg hover:shadow-red/30 transition-all"
-                >
-                  Clone Your Voice
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
         {section === 'Language' && (
           <div>
             <SectionTitle icon={<Globe size={20} />}>Output Language</SectionTitle>
@@ -228,23 +162,74 @@ export default function Settings() {
         {section === 'Privacy' && (
           <div>
             <SectionTitle icon={<Lock size={20} />}>Privacy & Data</SectionTitle>
-            {[
-              { key:'history',   title:'Store speech history',      desc:'Save all spoken phrases for replay and history review' },
-              { key:'analytics', title:'Share usage analytics',     desc:'Help improve SpeakMe with anonymised usage data'   },
-            ].map(({ key, title, desc }) => (
-              <SettingRow key={key} title={title} desc={desc}>
-                <Toggle on={privToggles[key]} onToggle={() => tog(privToggles, setPrivToggles, key)} />
-              </SettingRow>
-            ))}
-            <SettingRow title="Delete all my data" desc="Permanently delete your voice clone and all stored data">
-              <button
-                onClick={() => toast('⚠️ This action is irreversible. Confirmation email sent.')}
-                className="px-4 py-1.5 bg-red/8 border border-red/20 text-red text-xs font-bold
-                           rounded-lg hover:bg-red/15 transition-colors"
-              >
-                Delete Data
-              </button>
+
+            <SettingRow
+              title="Store speech history"
+              desc="Save phrases you speak so they appear in history. Turn off to speak without any record."
+            >
+              <Toggle
+                on={privacySettings.storeHistory}
+                onToggle={() => {
+                  const next = !privacySettings.storeHistory
+                  updatePrivacySettings('storeHistory', next)
+                  toast(next ? '✓ Speech history enabled' : '✓ Speech history disabled — nothing will be recorded')
+                }}
+              />
             </SettingRow>
+
+            <SettingRow
+              title="Share usage analytics"
+              desc="Send anonymous usage data to help improve SpeakMe. No personal data or voice audio is included."
+            >
+              <Toggle
+                on={privacySettings.analytics}
+                onToggle={() => {
+                  const next = !privacySettings.analytics
+                  updatePrivacySettings('analytics', next)
+                  toast(next ? '✓ Analytics enabled — thank you!' : '✓ Analytics disabled')
+                }}
+              />
+            </SettingRow>
+
+            {/* Delete data — two-step confirm */}
+            <SettingRow
+              title="Delete all my data"
+              desc="Permanently removes your voice clone, speech history, and all app preferences from this device."
+            >
+              {confirmDelete ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-red font-semibold">Are you sure?</span>
+                  <button
+                    onClick={() => {
+                      deleteAllData()
+                      logout()
+                      signOut()
+                      toast('🗑 All data deleted. Signing you out…')
+                    }}
+                    className="px-3 py-1.5 bg-red text-white text-xs font-bold rounded-lg
+                               hover:bg-red/80 transition-colors"
+                  >
+                    Yes, delete
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    className="px-3 py-1.5 border border-border text-muted text-xs rounded-lg
+                               hover:text-ink hover:border-border2 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="px-4 py-1.5 bg-red/8 border border-red/20 text-red text-xs font-bold
+                             rounded-lg hover:bg-red/15 transition-colors"
+                >
+                  Delete Data
+                </button>
+              )}
+            </SettingRow>
+
             <div className="mt-5 p-4 bg-surf rounded-xl border border-border text-xs text-muted leading-relaxed">
               All data is encrypted at rest (AES-256) and in transit (TLS 1.3). Supabase is SOC 2, HIPAA and GDPR compliant.
               Your voice clone is never shared with third parties without your explicit consent.
@@ -252,68 +237,164 @@ export default function Settings() {
           </div>
         )}
 
-        {section === 'Emergency' && (
-          <div>
-            <SectionTitle icon={<AlertTriangle size={20} />}>Emergency Settings</SectionTitle>
-            {[
-              { key:'location',   title:'Send location with alert',   desc:'Emergency contacts receive your GPS location when alert fires' },
-              { key:'inactivity', title:'Alert on 4+ hours inactivity',desc:"Notify Primary Carer if you haven't used SpeakMe in 4 hours" },
-            ].map(({ key, title, desc }) => (
-              <SettingRow key={key} title={title} desc={desc}>
-                <Toggle on={emToggles[key]} onToggle={() => tog(emToggles, setEmToggles, key)} />
-              </SettingRow>
-            ))}
-            <button
-              onClick={() => toast('🚨 TEST ALERT SENT — All emergency contacts notified (test mode)')}
-              className="mt-4 px-5 py-2.5 bg-red/10 border border-red/25 text-red text-sm font-bold
-                         rounded-xl hover:bg-red/18 transition-colors"
-            >
-              Send Test Alert
-            </button>
-          </div>
-        )}
 
         {section === 'Accessibility' && (
           <div>
             <SectionTitle icon={<Accessibility size={20} />}>Accessibility</SectionTitle>
             <p className="text-sm text-muted mb-5">Customise SpeakMe for your specific needs and abilities.</p>
-            {[['Larger text mode','Increase all font sizes for easier reading'],
-              ['High contrast mode','Increase colour contrast for visual accessibility'],
-              ['Reduce motion','Disable animations and transitions'],
-              ['Haptic feedback','Vibrate on phrase playback (mobile)'],
-            ].map(([t,d]) => (
-              <SettingRow key={t} title={t} desc={d}>
-                <Toggle on={false} onToggle={() => toast(`${t} toggled`)} />
-              </SettingRow>
-            ))}
+
+            <SettingRow title="Larger text" desc="Increases all font sizes by ~20% for easier reading">
+              <Toggle
+                on={accessibility.largerText}
+                onToggle={() => updateAccessibility('largerText', !accessibility.largerText)}
+              />
+            </SettingRow>
+
+            <SettingRow title="High contrast" desc="Brightens text and borders for improved visibility">
+              <Toggle
+                on={accessibility.highContrast}
+                onToggle={() => updateAccessibility('highContrast', !accessibility.highContrast)}
+              />
+            </SettingRow>
+
+            <SettingRow title="Reduce motion" desc="Disables all animations and transitions">
+              <Toggle
+                on={accessibility.reduceMotion}
+                onToggle={() => updateAccessibility('reduceMotion', !accessibility.reduceMotion)}
+              />
+            </SettingRow>
+
+            <SettingRow
+              title="Haptic feedback"
+              desc={
+                'vibrate' in navigator
+                  ? 'Vibrate when a phrase is spoken (mobile)'
+                  : 'Vibration not supported on this device'
+              }
+            >
+              <Toggle
+                on={accessibility.hapticFeedback}
+                onToggle={() => {
+                  if (!('vibrate' in navigator)) {
+                    toast('⚠️ Haptic feedback is not supported on this device')
+                    return
+                  }
+                  const next = !accessibility.hapticFeedback
+                  updateAccessibility('hapticFeedback', next)
+                  if (next) navigator.vibrate([80, 40, 80])
+                }}
+              />
+            </SettingRow>
+
+            {(accessibility.largerText || accessibility.highContrast || accessibility.reduceMotion || accessibility.hapticFeedback) && (
+              <div className="mt-5 p-4 bg-blue/6 border border-blue/20 rounded-xl flex items-center justify-between gap-4">
+                <p className="text-xs text-muted">
+                  Your accessibility preferences are saved and apply across all pages.
+                </p>
+                <button
+                  onClick={() => {
+                    const off = { largerText: false, highContrast: false, reduceMotion: false, hapticFeedback: false }
+                    Object.entries(off).forEach(([k, v]) => updateAccessibility(k, v))
+                    toast('Accessibility settings reset')
+                  }}
+                  className="text-xs text-muted hover:text-red shrink-0 transition-colors"
+                >
+                  Reset all
+                </button>
+              </div>
+            )}
           </div>
         )}
 
         {section === 'Account' && (
           <div>
             <SectionTitle icon={<User size={20} />}>Account</SectionTitle>
-            <div className="flex flex-wrap items-center gap-4 bg-card border border-border rounded-xl p-5 mb-5">
+
+            {/* Profile card */}
+            <div className="flex flex-wrap items-center gap-4 bg-card border border-border rounded-xl p-5 mb-6">
               <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue to-blue3
-                              flex items-center justify-center font-display font-black text-xl text-bg">
+                              flex items-center justify-center font-display font-black text-xl text-bg shrink-0">
                 {user?.initials}
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="font-display font-bold text-base">{user?.name}</div>
-                <div className="text-xs text-muted">{user?.email}</div>
+                <div className="text-xs text-muted truncate">{user?.email}</div>
               </div>
             </div>
-            {[['Change display name','Edit how your name appears across SpeakMe'],
-              ['Change email address','Update the email used for login and alerts'],
-              ['Change password','Update your account password'],
-            ].map(([t,d]) => (
-              <SettingRow key={t} title={t} desc={d}>
-                <button onClick={() => toast(`${t} dialog — connect Supabase Auth`)}
-                  className="px-3 py-1.5 border border-border text-muted text-xs rounded-lg hover:text-ink hover:border-border2 transition-all">
-                  Edit
+
+            {/* Display name — inline editable */}
+            <SettingRow title="Display name" desc="How your name appears across SpeakMe">
+              {editingName ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={nameRef}
+                    value={nameInput}
+                    onChange={e => setNameInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        updateDisplayName(nameInput)
+                        setEditingName(false)
+                        toast('✓ Display name updated')
+                      }
+                      if (e.key === 'Escape') setEditingName(false)
+                    }}
+                    className="px-3 py-1.5 bg-surf border border-blue/40 rounded-lg text-sm text-ink
+                               focus:outline-none focus:border-blue/70 w-36"
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => {
+                      updateDisplayName(nameInput)
+                      setEditingName(false)
+                      toast('✓ Display name updated')
+                    }}
+                    className="p-1.5 rounded-lg bg-green/10 border border-green/25 text-green hover:bg-green/20 transition-colors"
+                  >
+                    <Check size={13} />
+                  </button>
+                  <button
+                    onClick={() => setEditingName(false)}
+                    className="p-1.5 rounded-lg bg-red/8 border border-red/20 text-red hover:bg-red/15 transition-colors"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => { setNameInput(user?.name || ''); setEditingName(true) }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-border text-muted text-xs
+                             rounded-lg hover:text-ink hover:border-border2 transition-all"
+                >
+                  <Pencil size={11} /> Edit
                 </button>
-              </SettingRow>
-            ))}
-            <div className="pt-4 border-t border-border mt-4">
+              )}
+            </SettingRow>
+
+            {/* Email — read-only, managed by auth provider */}
+            <SettingRow title="Email address" desc="Please contact support">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted max-w-[160px] truncate">{user?.email}</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-surf border border-border text-muted">
+                  Read-only
+                </span>
+              </div>
+            </SettingRow>
+
+            {/* Password — managed by Asgardeo */}
+            <SettingRow title="Password" desc="Change your password via your account">
+              <a
+                href="https://accounts.asgardeo.io"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-border text-muted text-xs
+                           rounded-lg hover:text-ink hover:border-border2 transition-all"
+              >
+                Manage <ExternalLink size={11} />
+              </a>
+            </SettingRow>
+
+            {/* Sign out */}
+            <div className="pt-5 border-t border-border mt-2">
               <button
                 onClick={() => { logout(); signOut() }}
                 className="flex items-center gap-2 px-5 py-2.5 bg-red/10 border border-red/25 text-red text-sm font-bold
