@@ -8,6 +8,7 @@ import VoiceCloneProgress from '@/components/VoiceCloneProgress'
 import { cloneVoiceFromFiles, handleApiError } from '@/lib/elevenlabs'
 import { db, storage } from '@/lib/supabase'
 import { Dna, AlertTriangle, Mic, Upload, Volume2 } from 'lucide-react'
+import clsx from 'clsx'
 
 export default function VoiceBankingPage() {
   const { user, supabaseUserId, setVoiceId, toast } = useApp()
@@ -18,6 +19,7 @@ export default function VoiceBankingPage() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [errorMessage, setErrorMessage] = useState(null)
   const [clonedVoiceId, setClonedVoiceId] = useState(null)
+  const [inputMode, setInputMode] = useState('record') // 'record' | 'upload'
   const [clonedVoiceName, setClonedVoiceName] = useState(null)
 
   // Calculate total duration
@@ -196,19 +198,45 @@ export default function VoiceBankingPage() {
         </p>
       </div>
 
-      {/* Main content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Audio Recorder */}
-        <AudioRecorder
-          onRecordingComplete={handleRecordingComplete}
-          onError={handleError}
-        />
+      {/* Input mode toggle */}
+      <div className="inline-flex items-center bg-surf border border-border rounded-xl p-1 mb-6">
+        <button
+          onClick={() => setInputMode('record')}
+          className={clsx(
+            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all',
+            inputMode === 'record'
+              ? 'bg-card shadow-sm text-ink border border-border'
+              : 'text-muted hover:text-ink'
+          )}
+        >
+          <Mic size={15} /> Record
+        </button>
+        <button
+          onClick={() => setInputMode('upload')}
+          className={clsx(
+            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all',
+            inputMode === 'upload'
+              ? 'bg-card shadow-sm text-ink border border-border'
+              : 'text-muted hover:text-ink'
+          )}
+        >
+          <Upload size={15} /> Upload file
+        </button>
+      </div>
 
-        {/* File Uploader */}
-        <FileUploader
-          onFilesUploaded={handleFilesUploaded}
-          onError={handleError}
-        />
+      {/* Main content */}
+      <div className="mb-6">
+        {inputMode === 'record' ? (
+          <AudioRecorder
+            onRecordingComplete={handleRecordingComplete}
+            onError={handleError}
+          />
+        ) : (
+          <FileUploader
+            onFilesUploaded={handleFilesUploaded}
+            onError={handleError}
+          />
+        )}
       </div>
 
       {/* Clone Button — shown right after recording, before file list */}

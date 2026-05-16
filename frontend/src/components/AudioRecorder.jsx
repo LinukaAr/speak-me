@@ -147,14 +147,6 @@ export default function AudioRecorder({ onRecordingComplete, onError }) {
         <div className="text-center py-8">
           {justSaved ? (
             <div className="mb-5 flex flex-col items-center gap-2 animate-pulse-once">
-              <div className="flex items-center gap-2 bg-green/10 border border-green/25 text-green
-                              px-4 py-3 rounded-xl text-sm font-semibold">
-                <span>✓ Recording saved!</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted">
-                <ArrowUp size={13} className="text-red" />
-                Now tap <span className="font-semibold text-ink">Clone My Voice with ElevenLabs</span> above to continue
-              </div>
             </div>
           ) : (
             <p className="text-sm text-muted mb-6">
