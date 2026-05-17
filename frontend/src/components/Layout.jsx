@@ -6,7 +6,7 @@ import { PulseDot, Avatar } from './UI.jsx'
 const NAV = [
   { to: '/speak',       label: '🎙 Speak'           },
   { to: '/phrases',     label: '💬 Quick Phrases'    },
-  { to: '/archaeology', label: '🔍 Voice Archaeology' },
+  { to: '/archaeology', label: '🔬 Voice Recovery' },  
   { to: '/family',      label: '👨‍👩‍👧 Family Access'    },
   { to: '/sign',        label: '🤟 Sign Language'    },
   { to: '/settings',    label: '⚙️ Settings'          },
