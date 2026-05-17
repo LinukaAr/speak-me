@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { to: '/speak',         label: 'Speak',              Icon: Mic            },
   { to: '/phrases',       label: 'Quick Phrases',      Icon: MessageSquare  },
   { to: '/voice-banking', label: 'Voice Banking',      Icon: Mic2           },
-  { to: '/archaeology',   label: 'Voice Archaeology',  Icon: Search         },
+  { to: '/archaeology',   label: 'Voice Recovery',     Icon: Search         },
   { to: '/settings',      label: 'Settings',           Icon: Settings       },
   { to: '/about',         label: 'Help',               Icon: HelpCircle     },
 ]

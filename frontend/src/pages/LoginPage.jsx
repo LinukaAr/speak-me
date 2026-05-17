@@ -74,7 +74,7 @@ export default function LoginPage() {
         <div className="animate-fadeUp delay-3" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {[
             ['🎙', 'ElevenLabs voice cloning — 10 minutes to bank'],
-            ['🔍', 'Voice Archaeology™ — recover from old recordings'],
+            ['🔬', 'Voice Recovery — recover from old recordings'],
             ['👨‍👩‍👧', 'Family access with emergency protocols'],
             ['🌍', 'Multilingual — Sinhala, Tamil, Hindi + 70 more (future)'],
             ['🤟', 'Sign language camera input — coming in Phase 3'],
