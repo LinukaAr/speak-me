@@ -1,292 +1,398 @@
-import { useState } from 'react'
-import { useApp } from '@/context/AppContext'
-import FileUploader from '@/components/FileUploader'
-import AudioFileList from '@/components/AudioFileList'
-import { Upload, Users } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Users, Mic, Video, Sparkles } from 'lucide-react'
 
-export default function Archaeology() {
-  const { toast } = useApp()
-  const [audioFiles, setAudioFiles] = useState([])
+const FEATURES = [
+  {
+    icon: Mic,
+    title: 'Audio File Upload',
+    subtitle: 'Upload recordings from your device',
+    color: '#00b8ff',
+    rgb: '0, 184, 255',
+    number: '01',
+    description:
+      "Upload audio recordings from voice notes, voicemails, or phone recordings. We'll process and combine them to build your personalized voice clone — no technical knowledge needed.",
+    details: [
+      { icon: '📁', label: 'Supported Formats', value: 'MP3 · WAV · M4A · AAC · OGG' },
+      { icon: '⚡', label: 'Requirements', value: 'Min 1 min recommended · Best with 3+ min · Up to 20 files' },
+      { icon: '💡', label: 'Best Sources', value: 'WhatsApp voice notes · Voicemails · Voice memos · Audio messages' },
+    ],
+  },
+  {
+    icon: Video,
+    title: 'Video Processing',
+    subtitle: 'Extract audio from video files',
+    color: '#009bd6',
+    rgb: '0, 155, 214',
+    number: '02',
+    description:
+      "Upload any video and we'll automatically extract the audio track. Perfect for birthday videos, family events, Zoom recordings, and social media clips — video quality doesn't matter, only the audio.",
+    details: [
+      { icon: '🎬', label: 'Birthday & Events', value: 'Family celebrations, parties, gatherings' },
+      { icon: '💼', label: 'Zoom Meetings', value: 'Automatic speaker isolation from recordings' },
+      { icon: '📺', label: 'Social Media', value: 'Instagram, TikTok, YouTube clips' },
+    ],
+  },
+  {
+    icon: Users,
+    title: 'Family Collaboration',
+    subtitle: 'Let family members contribute recordings',
+    color: '#00719c',
+    rgb: '0, 113, 156',
+    number: '03',
+    description:
+      "Family members often have recordings you don't even know exist. Send them a secure invite link and they can upload audio files directly to your voice recovery collection from any device.",
+    details: [
+      { icon: '🔗', label: 'Invite Links', value: 'Send secure links to family members' },
+      { icon: '📤', label: 'Easy Upload', value: 'They upload from any device, no account needed' },
+      { icon: '📊', label: 'Track Progress', value: 'See who contributed what and when' },
+    ],
+  },
+  {
+    icon: Sparkles,
+    title: 'AI Enhancement',
+    subtitle: 'Improve audio quality automatically',
+    color: '#00b8ff',
+    rgb: '0, 184, 255',
+    number: '04',
+    description:
+      "Advanced AI processing cleans up old recordings and extracts the clearest possible voice sample — even from noisy, low-quality, or decades-old audio. Your voice, restored.",
+    details: [
+      { icon: '🎯', label: 'Noise Removal', value: 'Eliminate background music and ambient noise' },
+      { icon: '🔊', label: 'Voice Isolation', value: 'Separate your voice from other speakers' },
+      { icon: '✨', label: 'Quality Boost', value: 'Improve clarity of old or low-quality recordings' },
+    ],
+  },
+]
 
-  // Calculate total duration
-  const totalDuration = audioFiles.reduce((sum, file) => sum + file.duration, 0)
-  const totalMinutes = Math.floor(totalDuration / 60)
-  const totalSeconds = Math.floor(totalDuration % 60)
+function useInView(threshold = 0.15) {
+  const ref = useRef(null)
+  const [inView, setInView] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setInView(true); obs.disconnect() } },
+      { threshold }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [threshold])
+  return [ref, inView]
+}
 
-  // Handle files uploaded
-  const handleFilesUploaded = (newFiles) => {
-    setAudioFiles(prev => [...prev, ...newFiles])
-    toast(`✓ ${newFiles.length} file${newFiles.length > 1 ? 's' : ''} added to recovery collection`)
-  }
-
-  // Handle file deletion
-  const handleDeleteFile = (fileId) => {
-    setAudioFiles(prev => prev.filter(f => f.id !== fileId))
-    toast('🗑️ File removed')
-  }
-
-  // Handle error
-  const handleError = (error) => {
-    console.error('Error:', error)
-  }
-
-  // Handle process recovery
-  const handleProcessRecovery = () => {
-    toast('🚀 Voice Recovery processing coming in Phase 2! Your files are saved locally.')
-  }
+function FeatureCard({ feature, index }) {
+  const [ref, inView] = useInView(0.1)
+  const Icon = feature.icon
 
   return (
-    <div className="z-content screen-enter px-8 py-8 max-w-6xl mx-auto">
+    <div
+      ref={ref}
+      style={{
+        opacity: inView ? 1 : 0,
+        transform: inView
+          ? 'translateY(0) scale(1)'
+          : `translateY(60px) scale(0.95)`,
+        transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${index * 150}ms,
+                     transform 0.7s cubic-bezier(0.16,1,0.3,1) ${index * 150}ms`,
+        borderRadius: 24,
+        overflow: 'hidden',
+        border: `2px solid rgba(${feature.rgb}, 0.25)`,
+        background: 'var(--card)',
+        position: 'relative',
+        boxShadow: inView ? `0 8px 32px rgba(${feature.rgb}, 0.12)` : 'none',
+      }}
+    >
+      {/* Animated glow top edge */}
+      <div style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0,
+        height: 3,
+        background: `linear-gradient(90deg, transparent, rgba(${feature.rgb}, 1), transparent)`,
+        opacity: inView ? 1 : 0,
+        transition: `opacity 0.8s ease ${index * 150 + 300}ms`,
+      }} />
 
-      {/* Header */}
-      <div className="inline-flex items-center gap-2 text-[10px] font-bold tracking-[2px]
-                      uppercase mb-4"
-           style={{ color: '#00b8ff' }}>
-        <span className="w-4 h-px" style={{ backgroundColor: '#00b8ff' }} />
-        Voice Recovery
-      </div>
-      <h1 className="font-display font-black text-5xl tracking-[-2px] leading-[.95] mb-3">
-        Recover Your Voice
-      </h1>
-      <p className="text-muted text-[15px] leading-relaxed max-w-2xl mb-8">
-        Upload audio recordings from old voice notes, voicemails, or phone recordings. 
-        We'll help you recover your voice from these precious memories.
-      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr' }}>
 
-      {/* Stats Card - Show when files uploaded */}
-      {audioFiles.length > 0 && (
-        <div className="border rounded-2xl p-5 mb-8 flex gap-8 flex-wrap items-center"
-             style={{ backgroundColor: 'rgba(0, 184, 255, 0.06)', borderColor: 'rgba(0, 184, 255, 0.2)' }}>
-          <div className="text-center">
-            <div className="font-display font-black text-3xl text-ink">
-              {totalMinutes}m {totalSeconds}s
-            </div>
-            <div className="text-[11px] text-muted mt-0.5">Audio collected</div>
-          </div>
-          <div className="text-center">
-            <div className="font-display font-black text-3xl text-ink">{audioFiles.length}</div>
-            <div className="text-[11px] text-muted mt-0.5">Files uploaded</div>
-          </div>
-          <div className="text-center">
-            <div className="font-display font-black text-3xl text-ink">
-              {totalDuration >= 180 ? 'Good' : totalDuration >= 60 ? 'Fair' : 'More needed'}
-            </div>
-            <div className="text-[11px] text-muted mt-0.5">Quality estimate</div>
-          </div>
-          <div className="ml-auto">
-            <span className="px-4 py-2 rounded-full text-xs font-bold border"
-                  style={{ 
-                    backgroundColor: 'rgba(0, 184, 255, 0.1)', 
-                    borderColor: 'rgba(0, 184, 255, 0.25)',
-                    color: '#00b8ff'
-                  }}>
-              Ready for processing
+        {/* Left: description */}
+        <div style={{
+          padding: '44px 48px',
+          borderRight: `1px solid rgba(${feature.rgb}, 0.15)`,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          background: `linear-gradient(135deg, rgba(${feature.rgb}, 0.02) 0%, transparent 100%)`,
+        }}>
+          {/* Number + badge row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
+            <span style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 15,
+              fontWeight: 900,
+              color: `rgba(${feature.rgb}, 0.5)`,
+              letterSpacing: '1.5px',
+            }}>
+              {feature.number}
+            </span>
+            <span style={{
+              padding: '4px 12px',
+              borderRadius: 20,
+              fontSize: 10,
+              fontWeight: 700,
+              background: `rgba(${feature.rgb}, 0.15)`,
+              color: feature.color,
+              letterSpacing: '0.8px',
+              border: `1px solid rgba(${feature.rgb}, 0.3)`,
+            }}>
+              PHASE 2
             </span>
           </div>
-        </div>
-      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
-        <div>
-          {/* File Uploader */}
-          <div className="mb-6">
-            <FileUploader
-              onFilesUploaded={handleFilesUploaded}
-              onError={handleError}
-              maxFiles={20}
-              maxSizeMB={50}
-            />
+          {/* Icon + title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 18 }}>
+            <div style={{
+              width: 60,
+              height: 60,
+              borderRadius: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: `rgba(${feature.rgb}, 0.15)`,
+              color: feature.color,
+              flexShrink: 0,
+              border: `2px solid rgba(${feature.rgb}, 0.25)`,
+              boxShadow: `0 4px 16px rgba(${feature.rgb}, 0.2)`,
+            }}>
+              <Icon size={28} strokeWidth={2.5} />
+            </div>
+            <div>
+              <h3 style={{
+                fontFamily: 'var(--font-display)',
+                fontWeight: 900,
+                fontSize: 26,
+                color: feature.color,
+                margin: 0,
+                lineHeight: 1.1,
+                letterSpacing: '-0.5px',
+              }}>
+                {feature.title}
+              </h3>
+              <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '5px 0 0', fontWeight: 500 }}>
+                {feature.subtitle}
+              </p>
+            </div>
           </div>
 
-          {/* Audio File List */}
-          {audioFiles.length > 0 && (
-            <div className="mb-6">
-              <h2 className="font-display font-bold text-sm text-ink mb-3">
-                Uploaded Audio Files ({audioFiles.length})
+          {/* Description */}
+          <p style={{
+            fontSize: 16,
+            color: 'var(--text-2)',
+            lineHeight: 1.8,
+            margin: 0,
+            fontWeight: 400,
+          }}>
+            {feature.description}
+          </p>
+        </div>
+
+        {/* Right: detail rows */}
+        <div style={{
+          padding: '44px 40px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          gap: 14,
+          background: `rgba(${feature.rgb}, 0.04)`,
+        }}>
+          {feature.details.map((d, i) => (
+            <div
+              key={d.label}
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 16,
+                padding: '16px 18px',
+                borderRadius: 14,
+                background: 'var(--card)',
+                border: `1.5px solid rgba(${feature.rgb}, 0.15)`,
+                opacity: inView ? 1 : 0,
+                transform: inView ? 'translateX(0)' : 'translateX(30px)',
+                transition: `opacity 0.6s cubic-bezier(0.16,1,0.3,1) ${index * 150 + 300 + i * 100}ms,
+                             transform 0.6s cubic-bezier(0.16,1,0.3,1) ${index * 150 + 300 + i * 100}ms`,
+                boxShadow: inView ? `0 2px 8px rgba(${feature.rgb}, 0.08)` : 'none',
+              }}
+            >
+              <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0, marginTop: 2 }}>{d.icon}</span>
+              <div>
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: 'var(--text-1)',
+                  marginBottom: 4,
+                  letterSpacing: '0.3px',
+                }}>
+                  {d.label}
+                </div>
+                <div style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.6, fontWeight: 400 }}>
+                  {d.value}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function Archaeology() {
+  const [headerRef, headerInView] = useInView(0.1)
+  const [bannerRef, bannerInView] = useInView(0.1)
+
+  return (
+    <div style={{ padding: '48px 64px 80px', maxWidth: 1400, margin: '0 auto' }}>
+
+      {/* Header */}
+      <div
+        ref={headerRef}
+        style={{
+          opacity: headerInView ? 1 : 0,
+          transform: headerInView ? 'translateY(0)' : 'translateY(24px)',
+          transition: 'opacity 0.6s ease, transform 0.6s ease',
+          marginBottom: 40,
+        }}
+      >
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          color: '#00b8ff',
+          marginBottom: 16,
+        }}>
+          <span style={{ width: 16, height: 1, background: '#00b8ff' }} />
+          Voice Recovery
+        </div>
+
+        <h1 style={{
+          fontFamily: 'var(--font-display)',
+          fontWeight: 900,
+          fontSize: 56,
+          letterSpacing: '-2.5px',
+          lineHeight: 0.95,
+          marginBottom: 16,
+        }}>
+          Recover Your Voice
+        </h1>
+        <p style={{
+          fontSize: 17,
+          color: 'var(--text-2)',
+          lineHeight: 1.7,
+          maxWidth: 600,
+          margin: 0,
+        }}>
+          Already lost your voice? We'll help you recover it from old recordings, videos, and voice messages.
+          This powerful feature is coming in Phase 2.
+        </p>
+      </div>
+
+      {/* Phase 2 Banner */}
+      <div
+        ref={bannerRef}
+        style={{
+          opacity: bannerInView ? 1 : 0,
+          transform: bannerInView ? 'translateY(0)' : 'translateY(24px)',
+          transition: 'opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s',
+          marginBottom: 48,
+          padding: '28px 36px',
+          borderRadius: 20,
+          border: '1.5px solid rgba(0, 184, 255, 0.3)',
+          background: 'rgba(0, 184, 255, 0.07)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Decorative glow */}
+        <div style={{
+          position: 'absolute',
+          top: -60, right: -60,
+          width: 200, height: 200,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(0,184,255,0.12) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, position: 'relative' }}>
+          <span style={{ fontSize: 44, lineHeight: 1, flexShrink: 0 }}>🚀</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+              <h2 style={{
+                fontFamily: 'var(--font-display)',
+                fontWeight: 800,
+                fontSize: 26,
+                color: '#00b8ff',
+                margin: 0,
+              }}>
+                Coming in Phase 2
               </h2>
-              <AudioFileList
-                audioFiles={audioFiles}
-                onDelete={handleDeleteFile}
-              />
-            </div>
-          )}
-
-          {/* Process Button */}
-          {audioFiles.length > 0 && (
-            <div className="mb-6">
-              <button
-                onClick={handleProcessRecovery}
-                className="w-full py-4 text-white text-base font-bold rounded-xl
-                           hover:-translate-y-0.5 hover:shadow-xl transition-all active:scale-[.98]"
-                style={{ backgroundColor: '#00b8ff' }}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <Upload size={18} /> Process Voice Recovery
-                </span>
-              </button>
-              <p className="text-center text-xs text-muted mt-2">
-                Minimum 1 minute recommended · Best results with 3+ minutes
-              </p>
-            </div>
-          )}
-
-          {/* Family Collaboration Section - Phase 2 */}
-          <div className="bg-card border border-border rounded-xl p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Users size={20} style={{ color: '#00b8ff' }} />
-                <h3 className="font-display font-bold text-lg">Family Collaboration</h3>
-              </div>
-              <span className="px-2 py-1 rounded text-[10px] font-bold border"
-                    style={{ 
-                      backgroundColor: 'rgba(0, 184, 255, 0.1)', 
-                      borderColor: 'rgba(0, 184, 255, 0.25)',
-                      color: '#00b8ff'
-                    }}>
-                Phase 2
+              <span style={{
+                padding: '4px 12px',
+                borderRadius: 20,
+                fontSize: 10,
+                fontWeight: 700,
+                background: 'rgba(0, 184, 255, 0.15)',
+                color: '#00b8ff',
+                letterSpacing: '0.5px',
+              }}>
+                IN DEVELOPMENT
               </span>
             </div>
-            <p className="text-sm text-muted mb-4 leading-relaxed">
-              <strong className="text-ink">Coming Soon:</strong> Family members will be able to help by uploading old recordings they have. 
-              You'll be able to share an invite link and they can contribute audio files directly to your voice recovery collection.
+            <p style={{
+              fontSize: 15,
+              color: 'var(--text-2)',
+              lineHeight: 1.75,
+              marginBottom: 20,
+              maxWidth: 680,
+            }}>
+              Voice Recovery will allow you to recreate your voice from existing recordings — even if you've
+              already lost the ability to speak clearly. We'll extract and process audio from various sources
+              to build your personalized voice clone.
             </p>
-            <div className="bg-surf border border-border rounded-lg p-4">
-              <div className="flex items-start gap-3 mb-3">
-                <span className="text-lg">👨‍👩‍👧</span>
-                <div className="flex-1">
-                  <div className="text-xs font-semibold text-ink mb-1">How it will work:</div>
-                  <ul className="text-xs text-muted space-y-1">
-                    <li>• Send invite links to family members</li>
-                    <li>• They upload recordings from their devices</li>
-                    <li>• All files combine into your voice recovery</li>
-                    <li>• Track who contributed what</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Phase 2 Features - Enhanced Design */}
-          <div className="mt-6 rounded-xl overflow-hidden border"
-               style={{ borderColor: 'rgba(0, 184, 255, 0.2)' }}>
-            {/* Header */}
-            <div className="p-4 flex items-center justify-between"
-                 style={{ backgroundColor: 'rgba(0, 184, 255, 0.08)' }}>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🚀</span>
-                <h3 className="font-display font-bold text-lg" style={{ color: '#00b8ff' }}>
-                  Advanced Features Coming Soon
-                </h3>
-              </div>
-              <span className="px-3 py-1 rounded-full text-[10px] font-bold"
-                    style={{ 
-                      backgroundColor: 'rgba(0, 184, 255, 0.15)', 
-                      color: '#00b8ff'
-                    }}>
-                Phase 2
-              </span>
-            </div>
-            
-            {/* Features Grid */}
-            <div className="p-4 bg-card space-y-3">
-              {[
-                { icon: '🎬', title: 'Video Processing', desc: 'Extract audio from birthday videos, events, and social media clips' },
-                { icon: '💼', title: 'Zoom Recordings', desc: 'Automatic speaker isolation from meeting recordings' },
-                { icon: '🎯', title: 'AI Noise Removal', desc: 'Remove background music and enhance voice clarity' },
-                { icon: '📺', title: 'YouTube Import', desc: 'Extract voice directly from YouTube videos' }
-              ].map((feature, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 rounded-lg border border-border hover:border-blue/30 transition-colors"
-                     style={{ backgroundColor: 'rgba(0, 184, 255, 0.02)' }}>
-                  <span className="text-2xl shrink-0">{feature.icon}</span>
-                  <div className="flex-1">
-                    <div className="font-semibold text-sm text-ink mb-1">{feature.title}</div>
-                    <div className="text-xs text-muted leading-relaxed">{feature.desc}</div>
-                  </div>
-                  <span className="text-xs text-muted shrink-0">Soon</span>
-                </div>
-              ))}
-            </div>
-            
-            {/* Footer */}
-            <div className="px-4 py-3 border-t border-border bg-surf">
-              <p className="text-xs text-muted text-center">
-                These features will be available in the next major update
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div>
-          <div className="bg-card border border-border rounded-xl p-4 mb-4">
-            <h4 className="font-display font-bold text-xs mb-3">⚡ Audio Requirements</h4>
-            <p className="text-xs text-muted mb-3">
-              For best voice recovery results:
-            </p>
-            {[
-              ['1-3 minutes','Quick Recovery'],
-              ['3-10 minutes','Good Quality'],
-              ['10-30 minutes','High Quality'],
-              ['30+ minutes','Professional']
-            ].map(([d,l]) => (
-              <div key={l} className="flex justify-between text-xs py-1.5 border-b border-white/4 last:border-0">
-                <span className="text-muted">{d}</span>
-                <span className="font-semibold" style={{ color: '#00b8ff' }}>{l}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="bg-card border border-border rounded-xl p-4 mb-4">
-            <h4 className="font-display font-bold text-xs mb-3">📁 Supported Formats</h4>
-            <div className="flex flex-wrap gap-2">
-              {['MP3', 'WAV', 'M4A', 'AAC', 'OGG'].map(format => (
-                <span key={format} className="px-2 py-1 rounded text-[10px] font-semibold border"
-                      style={{ 
-                        backgroundColor: 'rgba(0, 184, 255, 0.1)', 
-                        borderColor: 'rgba(0, 184, 255, 0.2)',
-                        color: '#00b8ff'
-                      }}>
-                  {format}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {['Audio Upload', 'Video Processing', 'Family Collaboration', 'AI Enhancement'].map((f, i) => (
+                <span
+                  key={f}
+                  style={{
+                    padding: '7px 16px',
+                    borderRadius: 10,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    border: '1px solid rgba(0, 184, 255, 0.25)',
+                    background: 'rgba(0, 184, 255, 0.1)',
+                    color: '#00b8ff',
+                    opacity: bannerInView ? 1 : 0,
+                    transform: bannerInView ? 'translateY(0)' : 'translateY(8px)',
+                    transition: `opacity 0.4s ease ${0.3 + i * 0.07}s, transform 0.4s ease ${0.3 + i * 0.07}s`,
+                  }}
+                >
+                  {f}
                 </span>
               ))}
             </div>
-            <p className="text-xs text-muted mt-3 leading-relaxed">
-              Max 50MB per file • Up to 20 files
-            </p>
-          </div>
-
-          <div className="bg-card border border-border rounded-xl p-4 mb-4">
-            <h4 className="font-display font-bold text-xs mb-3">💡 Best Sources</h4>
-            <div className="space-y-2 text-xs text-muted">
-              <div className="flex items-start gap-2">
-                <span>📱</span>
-                <span><strong>WhatsApp voice notes</strong> - Usually the clearest</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span>📞</span>
-                <span><strong>Voicemails</strong> - Even short ones help</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span>🎙️</span>
-                <span><strong>Voice memos</strong> - From phone recordings</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span>💬</span>
-                <span><strong>Audio messages</strong> - From any messaging app</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-card border border-border rounded-xl p-4">
-            <h4 className="font-display font-bold text-xs mb-3">🔒 Privacy & Security</h4>
-            <p className="text-xs text-muted leading-relaxed">
-              All audio files are encrypted during upload and storage. 
-              Files are processed securely and can be deleted anytime. 
-              SOC 2, HIPAA and GDPR compliant.
-            </p>
           </div>
         </div>
       </div>
+
+      {/* Feature Cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+        {FEATURES.map((feature, idx) => (
+          <FeatureCard key={feature.title} feature={feature} index={idx} />
+        ))}
+      </div>
+
     </div>
   )
 }
