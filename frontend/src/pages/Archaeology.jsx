@@ -82,11 +82,13 @@ function useInView(threshold = 0.15) {
 
 function FeatureCard({ feature, index }) {
   const [ref, inView] = useInView(0.1)
+  const [isRevealed, setIsRevealed] = useState(false)
   const Icon = feature.icon
 
   return (
     <div
       ref={ref}
+      onClick={() => !isRevealed && setIsRevealed(true)}
       style={{
         opacity: inView ? 1 : 0,
         transform: inView
@@ -96,10 +98,11 @@ function FeatureCard({ feature, index }) {
                      transform 0.7s cubic-bezier(0.16,1,0.3,1) ${index * 150}ms`,
         borderRadius: 24,
         overflow: 'hidden',
-        border: `2px solid rgba(${feature.rgb}, 0.25)`,
+        border: `2px solid rgba(${feature.rgb}, ${isRevealed ? 0.25 : 0.15})`,
         background: 'var(--card)',
         position: 'relative',
-        boxShadow: inView ? `0 8px 32px rgba(${feature.rgb}, 0.12)` : 'none',
+        boxShadow: inView ? (isRevealed ? `0 12px 40px rgba(${feature.rgb}, 0.2)` : `0 8px 32px rgba(${feature.rgb}, 0.12)`) : 'none',
+        cursor: isRevealed ? 'default' : 'pointer',
       }}
     >
       {/* Animated glow top edge */}
@@ -108,11 +111,68 @@ function FeatureCard({ feature, index }) {
         top: 0, left: 0, right: 0,
         height: 3,
         background: `linear-gradient(90deg, transparent, rgba(${feature.rgb}, 1), transparent)`,
-        opacity: inView ? 1 : 0,
+        opacity: inView ? (isRevealed ? 1 : 0.5) : 0,
         transition: `opacity 0.8s ease ${index * 150 + 300}ms`,
       }} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr' }}>
+      {/* Blur overlay with click prompt */}
+      {!isRevealed && inView && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          background: `linear-gradient(135deg, rgba(${feature.rgb}, 0.15) 0%, rgba(${feature.rgb}, 0.05) 100%)`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10,
+          transition: 'all 0.4s ease',
+        }}>
+          <div style={{
+            textAlign: 'center',
+            padding: '24px 32px',
+            borderRadius: 16,
+            background: `rgba(${feature.rgb}, 0.12)`,
+            border: `2px solid rgba(${feature.rgb}, 0.3)`,
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            animation: 'pulse 2s ease-in-out infinite',
+          }}>
+            <div style={{
+              fontSize: 40,
+              marginBottom: 12,
+              filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))',
+            }}>
+              👆
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 18,
+              fontWeight: 800,
+              color: feature.color,
+              marginBottom: 6,
+              textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+            }}>
+              Click to Reveal
+            </div>
+            <div style={{
+              fontSize: 13,
+              color: 'var(--text-2)',
+              fontWeight: 500,
+            }}>
+              Discover {feature.title}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1.1fr 0.9fr',
+        filter: isRevealed ? 'none' : 'blur(0px)',
+        transition: 'filter 0.5s ease',
+      }}>
 
         {/* Left: description */}
         <div style={{
@@ -121,10 +181,18 @@ function FeatureCard({ feature, index }) {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          background: `linear-gradient(135deg, rgba(${feature.rgb}, 0.02) 0%, transparent 100%)`,
+          background: `linear-gradient(135deg, rgba(${feature.rgb}, ${isRevealed ? 0.04 : 0.02}) 0%, transparent 100%)`,
+          transition: 'background 0.5s ease',
         }}>
           {/* Number + badge row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            marginBottom: 24,
+            opacity: isRevealed ? 1 : 0.3,
+            transition: 'opacity 0.5s ease',
+          }}>
             <span style={{
               fontFamily: 'var(--font-display)',
               fontSize: 15,
@@ -149,7 +217,15 @@ function FeatureCard({ feature, index }) {
           </div>
 
           {/* Icon + title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 18 }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            marginBottom: 18,
+            opacity: isRevealed ? 1 : 0.3,
+            transform: isRevealed ? 'translateX(0)' : 'translateX(-10px)',
+            transition: 'all 0.5s cubic-bezier(0.16,1,0.3,1) 0.1s',
+          }}>
             <div style={{
               width: 60,
               height: 60,
@@ -157,11 +233,12 @@ function FeatureCard({ feature, index }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: `rgba(${feature.rgb}, 0.15)`,
+              background: `rgba(${feature.rgb}, ${isRevealed ? 0.15 : 0.08})`,
               color: feature.color,
               flexShrink: 0,
-              border: `2px solid rgba(${feature.rgb}, 0.25)`,
-              boxShadow: `0 4px 16px rgba(${feature.rgb}, 0.2)`,
+              border: `2px solid rgba(${feature.rgb}, ${isRevealed ? 0.25 : 0.15})`,
+              boxShadow: isRevealed ? `0 4px 16px rgba(${feature.rgb}, 0.2)` : 'none',
+              transition: 'all 0.5s ease',
             }}>
               <Icon size={28} strokeWidth={2.5} />
             </div>
@@ -190,6 +267,9 @@ function FeatureCard({ feature, index }) {
             lineHeight: 1.8,
             margin: 0,
             fontWeight: 400,
+            opacity: isRevealed ? 1 : 0.3,
+            transform: isRevealed ? 'translateY(0)' : 'translateY(10px)',
+            transition: 'all 0.5s cubic-bezier(0.16,1,0.3,1) 0.2s',
           }}>
             {feature.description}
           </p>
@@ -202,7 +282,8 @@ function FeatureCard({ feature, index }) {
           flexDirection: 'column',
           justifyContent: 'center',
           gap: 14,
-          background: `rgba(${feature.rgb}, 0.04)`,
+          background: `rgba(${feature.rgb}, ${isRevealed ? 0.04 : 0.02})`,
+          transition: 'background 0.5s ease',
         }}>
           {feature.details.map((d, i) => (
             <div
@@ -214,12 +295,17 @@ function FeatureCard({ feature, index }) {
                 padding: '16px 18px',
                 borderRadius: 14,
                 background: 'var(--card)',
-                border: `1.5px solid rgba(${feature.rgb}, 0.15)`,
-                opacity: inView ? 1 : 0,
-                transform: inView ? 'translateX(0)' : 'translateX(30px)',
-                transition: `opacity 0.6s cubic-bezier(0.16,1,0.3,1) ${index * 150 + 300 + i * 100}ms,
-                             transform 0.6s cubic-bezier(0.16,1,0.3,1) ${index * 150 + 300 + i * 100}ms`,
-                boxShadow: inView ? `0 2px 8px rgba(${feature.rgb}, 0.08)` : 'none',
+                border: `1.5px solid rgba(${feature.rgb}, ${isRevealed ? 0.15 : 0.08})`,
+                opacity: inView ? (isRevealed ? 1 : 0.3) : 0,
+                transform: inView ? (isRevealed ? 'translateX(0)' : 'translateX(30px)') : 'translateX(30px)',
+                transition: isRevealed
+                  ? `opacity 0.6s cubic-bezier(0.16,1,0.3,1) ${0.3 + i * 0.1}s,
+                     transform 0.6s cubic-bezier(0.16,1,0.3,1) ${0.3 + i * 0.1}s,
+                     border 0.5s ease,
+                     box-shadow 0.5s ease`
+                  : `opacity 0.6s cubic-bezier(0.16,1,0.3,1) ${index * 150 + 300 + i * 100}ms,
+                     transform 0.6s cubic-bezier(0.16,1,0.3,1) ${index * 150 + 300 + i * 100}ms`,
+                boxShadow: (inView && isRevealed) ? `0 2px 8px rgba(${feature.rgb}, 0.08)` : 'none',
               }}
             >
               <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0, marginTop: 2 }}>{d.icon}</span>
@@ -241,6 +327,26 @@ function FeatureCard({ feature, index }) {
           ))}
         </div>
       </div>
+
+      {/* Reveal success indicator */}
+      {isRevealed && (
+        <div style={{
+          position: 'absolute',
+          top: 16,
+          right: 16,
+          padding: '6px 12px',
+          borderRadius: 20,
+          background: `rgba(${feature.rgb}, 0.15)`,
+          border: `1px solid rgba(${feature.rgb}, 0.3)`,
+          fontSize: 11,
+          fontWeight: 700,
+          color: feature.color,
+          opacity: 0,
+          animation: 'fadeInOut 2s ease-in-out',
+        }}>
+          ✓ Revealed
+        </div>
+      )}
     </div>
   )
 }
@@ -250,7 +356,20 @@ export default function Archaeology() {
   const [bannerRef, bannerInView] = useInView(0.1)
 
   return (
-    <div style={{ padding: '48px 64px 80px', maxWidth: 1400, margin: '0 auto' }}>
+    <>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.05); opacity: 0.9; }
+        }
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: translateY(-10px); }
+          20% { opacity: 1; transform: translateY(0); }
+          80% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-10px); }
+        }
+      `}</style>
+      <div style={{ padding: '48px 64px 80px', maxWidth: 1400, margin: '0 auto' }}>
 
       {/* Header */}
       <div
@@ -394,5 +513,6 @@ export default function Archaeology() {
       </div>
 
     </div>
+    </>
   )
 }
